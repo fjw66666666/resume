@@ -380,6 +380,11 @@ ul { margin: 0; padding: 0; list-style: none; }
   transition: color .25s ease, background-color .25s ease;
 }
 .nav a:hover { color: var(--text); text-decoration: none; }
+/* 悬停停留期间：淡强调色预览，提示「即将自动跳转」（比 is-active 更轻） */
+.nav a.is-armed {
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
 /* 当前所在板块高亮 */
 .nav a.is-active {
   color: var(--accent);
@@ -2320,6 +2325,53 @@ function initScrollSpy() {
 }
 
 /**
+ * 悬停导航：鼠标划过导航项并停留片刻，即自动滚动到对应板块（无需点击）。
+ * 设计要点：
+ *   · 停留 180ms 才触发 —— 鼠标从导航横扫到右侧主题按钮时不会误跳。
+ *   · 用 scrollIntoView 而非改 location.hash —— 不污染浏览器后退历史。
+ *   · 同一项在鼠标移开前只触发一次 —— 避免来回抖动。
+ *   · 点击 / 键盘 / 触屏的原有行为完全不受影响（未拦截任何事件）。
+ * 【可降级】开启「减少动态效果」时为瞬时跳转；旧浏览器无 matchMedia 时按平滑处理。
+ */
+function initHoverNav() {
+  const links = document.querySelectorAll('.nav a[data-target]');
+  if (!links.length) return;
+
+  const DWELL_MS = 180;                    // 需要停留多久才触发
+  const instant = respectsReducedMotion(); // 减少动态效果 → 瞬时跳转
+  let timer = null;
+
+  function cancel() {
+    if (timer) { clearTimeout(timer); timer = null; }
+  }
+
+  links.forEach(function (link) {
+    let fired = false;                     // 本次悬停是否已触发过
+
+    link.addEventListener('mouseenter', function () {
+      if (fired) return;
+      cancel();
+      link.classList.add('is-armed');      // 视觉反馈：即将跳转
+      timer = setTimeout(function () {
+        timer = null;
+        fired = true;
+        link.classList.remove('is-armed');
+        const target = document.getElementById(link.getAttribute('data-target'));
+        if (target) {
+          target.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' });
+        }
+      }, DWELL_MS);
+    });
+
+    link.addEventListener('mouseleave', function () {
+      cancel();
+      fired = false;                       // 移开后重新武装，可再次触发
+      link.classList.remove('is-armed');
+    });
+  });
+}
+
+/**
  * 入场淡入：元素滚动进入视口时淡入。
  * 【可降级】开启「减少动态效果」时直接跳过，元素保持正常显示。
  */
@@ -2386,6 +2438,7 @@ function init() {
   // 4) 交互增强（可降级）
   bindThemeSwitcher();
   initScrollSpy();
+  initHoverNav();
   initReveal();
   bindPrintButton();
 }
