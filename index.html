@@ -1,0 +1,2401 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+   科幻风单文件个人主页（配置驱动）
+  ============================================================================
+   · 本文件是「配置驱动」的单文件站点：全部内容来自下方的 PROFILE 对象，
+     全部配色来自 :root 与 [data-theme="..."] 里的 CSS 变量。
+   · 双击本文件即可在浏览器打开，无需联网、无需安装任何东西。
+   · 想改内容 → 只改 PROFILE（Ctrl+F 搜索 "const PROFILE"）。
+   · 想换配色 → 只改 CSS 里的颜色变量（Ctrl+F 搜索 "--accent"）。
+   · 想加主题 → THEMES 加一条 + CSS 加一段 [data-theme="..."]，按钮会自动出现。
+   · 想隐藏板块 / 调顺序 → 只改 SECTION_CONFIG（Ctrl+F 搜索 "const SECTION_CONFIG"）。
+   · 详细修改教程见同目录《使用说明.md》。
+  ============================================================================
+-->
+<html lang="zh-CN" data-theme="deep-space">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ★ 页面标题由下方 JS 依据 PROFILE.identity.name 自动写入（保证「改 1 处全站同步」）。
+    这里的静态 <title> 只是「无 JS 时的兜底」，因此不写具体姓名。
+-->
+<meta name="description" content="科幻风个人形象展示页 · 四套主题可切换">
+<!-- SEO / 无障碍微调（2026-09-19 部署前补充，纯静态 meta，不影响视觉与交互） -->
+<meta name="keywords" content="付加旺,个人主页,江苏大学,梦溪学院,金山英才班,电气工程及其自动化">
+<meta name="author" content="付加旺">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#05080f">
+<meta name="format-detection" content="telephone=no">
+<title>个人主页</title>
+
+<!--
+  ── 社交分享卡片（og: 标签）────────────────────────────────────────────
+  ★ 为什么必须有：微信 / QQ / 朋友圈是本站的主要分发路径，而它们的抓取程序
+    **不执行 JavaScript**。若没有下面这几行静态标签，分享出去的链接就是一条
+    「光秃秃的链接」（无标题、无描述、无缩略图），点击率会明显偏低。
+  ★ 这三行的值需要与 PROFILE.identity 保持一致（改名字 / 改学校时记得同步）。
+  ★ og:url 部署上线后补：填 GitHub Pages 的最终地址（形如 https://<用户名>.github.io/<仓库名>/）。
+  ★ og:image 已内置一张 1200×630 的主题色占位图（内联 SVG，零请求、不产生 404）；
+     部署后可替换为真实预览图（见下方注释）。
+-->
+<meta property="og:type" content="profile">
+<meta property="og:title" content="付加旺 · 个人主页">
+<meta property="og:description" content="江苏大学梦溪学院（拔尖创新人才培养荣誉学院）· 金山英才班 · 电气工程及其自动化 2026 级">
+<meta property="og:url" content="https://fjw66666666.github.io/resume/">
+<!-- og:image：内置一张 1200×630 的主题色占位图（内联 SVG，零外部请求、不产生 404）。
+     部署后如需换成真实预览图：用下面注释里的示例替换掉本行即可。 -->
+<meta property="og:image" content="https://fjw66666666.github.io/resume/preview.png">
+<!-- 部署后替换为真实预览图（1200×630），例如：
+<meta property="og:image" content="https://<用户名>.github.io/<仓库名>/preview.png"> -->
+
+<!--
+  ── 站点图标（favicon）──────────────────────────────────────────────────
+  ★ 用内联 SVG data-URI：**零外部请求、不产生 404**。若不声明 favicon，浏览器
+    会自动请求 /favicon.ico，在控制台报一条 404。图形为主题强调色方块，呼应科幻风。
+-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2305080f'/%3E%3Crect x='9' y='9' width='14' height='14' rx='3' fill='%234da3ff'/%3E%3C/svg%3E">
+
+<!--
+  ── 字体：锦上添花，非必需 ──────────────────────────────────────────────
+  下面三行 <link> 只负责「更好看的字体」。加载失败、断网、被网络策略拦截时，
+  浏览器会自动回落到系统字体（见下方 --font-display / --font-body 的字体栈），
+  站点功能与布局完全不受影响。
+  ★ 若你需要「极致离线」（完全不请求外网），把下面这 3 行 <link> 删掉即可，
+    其余代码一行都不用改。
+-->
+<!-- 字体策略：默认【不引入】外部字体 CDN —— 下面三行已注释。
+     原因：Google Fonts 在中国大陆基本不可访问。本页面的主要分发路径是微信分享，
+     受众几乎都在国内，拉字体必然失败，只会产生无谓的请求与控制台报错。
+     当前使用系统字体栈，四套主题视觉一致；「科幻感」由 CSS 效果承担
+     （发光 / 网格 / 扫描线 / 玻璃拟态 / HUD 装饰），不依赖字体。
+
+     ★ 如果你想要科技感字体（Orbitron / Inter / JetBrains Mono）：
+       把下面三行的注释解开即可 —— 删除本注释块的开头标记与结尾标记，
+       只保留那三行 link 标签。字体栈已把它们排在首位，
+       加载成功后自动生效，无需修改任何其他代码。
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+-->
+
+<style>
+/* ============================================================================
+   目录（方便你快速定位）：
+     ①  主题变量（CSS 变量体系 · 四套主题）
+     ②  全局重置与排版
+     ③  背景装饰（网格 / 扫描线 / 星点）
+     ④  顶部导航与主题切换按钮
+     ⑤  Hero 主视觉
+     ⑥  通用板块容器与卡片（玻璃拟态）
+     ⑦  各板块专属样式（档案/教育/技能/项目/荣誉/兴趣/页脚）
+     ⑧  动效与入场动画
+     ⑨  响应式断点
+     ⑩  打印样式
+   ============================================================================ */
+
+
+/* ============================================================================
+   ①  主题变量 —— 四套主题的「唯一配色来源」
+   ──────────────────────────────────────────────────────────────────────────
+   · 页面上所有颜色都以 var(--xxx) 的形式引用这些变量，
+     所以「改一个变量 = 全站变色」，不需要去改任何组件的样式。
+   · 想换某套主题的强调色？只改对应块里的 --accent 一行即可。
+   · 想加第五套主题？见文件底部 THEMES 对象旁的说明。
+   ============================================================================ */
+
+/* ── 基础变量（所有主题共享的部分；颜色会被下方的主题块覆盖） ── */
+:root {
+  /* 间距与节奏（一般不用改） */
+  --space-1: 8px;   --space-2: 16px;  --space-3: 24px;
+  --space-4: 32px;  --space-5: 48px;  --space-6: 72px;
+  --maxw: 1120px;   /* 内容区最大宽度，想更宽/更窄就改这里 */
+
+  /* 字体族：四套主题保持一致，避免切换时字体跳变。
+     ★ 中文字体必须显式写入字体栈（PingFang SC / Hiragino Sans GB / Microsoft YaHei），
+       否则在微信、iOS 等环境下中文会回落到难看的默认字体。
+       英文/数字优先用 Orbitron / Inter，找不到时自动用中文字体兜底，最后回落 system-ui。 */
+  --font-display: 'Orbitron', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Segoe UI', system-ui, sans-serif;
+  --font-body:    'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Segoe UI', system-ui, sans-serif;
+  /* 等宽字体同样带中文兜底：中文部分用系统黑体，保证等宽主题下中文不塌 */
+  --font-mono:    'JetBrains Mono', 'SFMono-Regular', 'Consolas', 'PingFang SC', 'Microsoft YaHei', monospace;
+  --radius: 14px;
+}
+
+/* ── A · 深空冷峻（默认主题）────────────────────────────────────────────
+   气质：冷峻、克制、真空、信任感
+   手法：深蓝黑底 + 青白冷光 + 细网格 + 大面积留白
+   ──────────────────────────────────────────────────────────────────── */
+:root,
+[data-theme="deep-space"] {
+  --bg:        #05080f;                  /* 页面底色 */
+  --bg-soft:   #0a1220;                  /* 次级底色（页面分区） */
+  --surface:   #0e1725;                  /* 卡片背景 */
+  --surface-2: #131f30;                  /* 卡片内嵌套层背景 */
+  --border:    #1e3350;                  /* 描边色 */
+  --text:      #e6f1ff;                  /* 主文字（对底色对比度 ≈ 13:1） */
+  --text-dim:  #8fa9c4;                  /* 次要文字 */
+  --accent:    #4da3ff;                  /* 主强调色 */
+  --accent-2:  #7ee0ff;                  /* 次强调色（渐变末端） */
+  --glow:      rgba(77,163,255,.45);     /* 发光色（含透明度） */
+  --grid:      rgba(77,163,255,.06);     /* 背景网格线色 */
+  --radius:    14px;                     /* 统一圆角 */
+}
+
+/* ── B · 赛博霓虹 ──────────────────────────────────────────────────────
+   气质：高能、赛博朋克、夜之城
+   手法：近黑紫底 + 品红/青双霓虹 + 扫描线 + 霓虹描边发光
+   ──────────────────────────────────────────────────────────────────── */
+[data-theme="cyber-neon"] {
+  --bg:        #07030d;
+  --bg-soft:   #100622;
+  --surface:   #170a2b;
+  --surface-2: #1f0d38;
+  --border:    #4a1f7a;
+  --text:      #f5e9ff;
+  --text-dim:  #b490d8;
+  --accent:    #ff2d95;
+  --accent-2:  #00f0ff;
+  --glow:      rgba(255,45,149,.55);
+  --grid:      rgba(255,45,149,.07);
+  --radius:    12px;
+  /* 字体族继承 :root，不重复声明 —— 保证四套主题字体一致 */
+}
+
+/* ── C · 极客代码流 ────────────────────────────────────────────────────
+   气质：终端、黑客、极简
+   手法：纯黑底 + 荧光绿 + 等宽字体主导 + 终端窗口装饰
+   ──────────────────────────────────────────────────────────────────── */
+[data-theme="geek-code"] {
+  --bg:        #000000;
+  --bg-soft:   #0a0d0a;
+  --surface:   #0d120d;
+  --surface-2: #121a12;
+  --border:    #1f3a1f;
+  --text:      #d4ffd4;
+  --text-dim:  #6f9c6f;
+  --accent:    #33ff66;
+  --accent-2:  #aaffaa;
+  --glow:      rgba(51,255,102,.45);
+  --grid:      rgba(51,255,102,.05);
+  --font-display: 'JetBrains Mono', 'Consolas', 'PingFang SC', 'Microsoft YaHei', monospace;  /* 本主题标题用等宽（带中文兜底） */
+  --font-body:    'JetBrains Mono', 'Consolas', 'PingFang SC', 'Microsoft YaHei', monospace;  /* 本主题正文也用等宽 */
+  --radius:    4px;
+}
+
+/* ── D · HUD 仪表 ──────────────────────────────────────────────────────
+   气质：军工、仪器、精密
+   手法：深青灰底 + 琥珀/青双色 + 角标 + 刻度 + 数据条
+   ──────────────────────────────────────────────────────────────────── */
+[data-theme="hud-panel"] {
+  --bg:        #06100f;
+  --bg-soft:   #0a1a18;
+  --surface:   #0d2320;
+  --surface-2: #122e2a;
+  --border:    #1c4a43;
+  --text:      #d8fff8;
+  --text-dim:  #7fb3aa;
+  --accent:    #ffb000;
+  --accent-2:  #00e5c8;
+  --glow:      rgba(255,176,0,.45);
+  --grid:      rgba(0,229,200,.07);
+  --radius:    2px;                      /* 直角感更强，像仪表盘 */
+}
+
+
+/* ============================================================================
+   ②  全局重置与排版
+   ============================================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;                 /* 点击导航平滑滚动到板块 */
+  transition: background-color .35s ease;  /* 切换主题时底色平滑过渡 */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  /* ★ 移动端全屏高度：微信 / iOS Safari 的地址栏会吃掉 100vh，导致底部被裁。
+     先用 vh 兜底（旧浏览器），再用 dvh 覆盖（现代浏览器动态视口高度）。 */
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.75;
+  letter-spacing: .01em;
+  transition: background-color .35s ease, color .35s ease;
+  overflow-x: hidden;                      /* 防止移动端横向滚动 */
+  -webkit-text-size-adjust: 100%;          /* 微信/iOS 横屏时不要自动放大字号 */
+  -webkit-tap-highlight-color: transparent;/* 移动端点击不出现灰色高亮块 */
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+  letter-spacing: .02em;
+}
+
+p { margin: 0; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+ul { margin: 0; padding: 0; list-style: none; }
+
+/* 键盘焦点可见（无障碍要求） */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 页面内容容器：统一左右留白与最大宽度 */
+.wrap {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 var(--space-3);
+}
+
+/* 等宽小标签（数据、标签用） */
+.mono { font-family: var(--font-mono); }
+
+
+/* ============================================================================
+   ③  背景装饰 —— 网格 + 扫描线（低对比，不抢内容）
+   ============================================================================ */
+.bg-decor {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;                    /* 装饰层不接收鼠标事件 */
+  background-image:
+    /* 细网格 */
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    /* 顶部中心的一团柔光，营造「深空」氛围 */
+    radial-gradient(ellipse 80% 50% at 50% -10%, var(--glow), transparent 70%);
+  background-size: 48px 48px, 48px 48px, 100% 100%;
+  opacity: .9;
+  transition: opacity .35s ease;
+}
+
+/* 极客代码流主题：把背景换成扫描线，强化终端感 */
+[data-theme="geek-code"] .bg-decor {
+  background-image:
+    repeating-linear-gradient(0deg, var(--grid) 0 1px, transparent 1px 4px),
+    radial-gradient(ellipse 80% 50% at 50% -10%, var(--glow), transparent 70%);
+  background-size: 100% 4px, 100% 100%;
+}
+
+/* 所有正文内容浮在装饰层之上 */
+.page {
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ============================================================================
+   ④  顶部导航 + 主题切换按钮（右上角固定悬浮）
+   ──────────────────────────────────────────────────────────────────────────
+   ★ 微信兼容要点：
+     1. 顶部栏用 position:fixed。微信 X5 内核滚动时 fixed 可能抖动，
+        故加 transform: translateZ(0) + will-change: transform 提升为合成层。
+     2. 玻璃拟态（backdrop-filter）在微信 Android X5 部分版本不支持，
+        故本文件统一用「先给不透明底色兜底，再用 @supports 增强」的写法，
+        确保不支持时只是失去模糊，不会变成全透明看不见内容。
+   ============================================================================ */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 10px var(--space-3);
+  /* 兜底：不依赖任何高级特性，直接给一层足够不透明的背景色 */
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  /* 微信 X5 滚动抖动治理：提升为独立合成层 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+/* 支持 backdrop-filter 的环境：改成半透明 + 毛玻璃（渐进增强） */
+@supports ((-webkit-backdrop-filter: blur(14px)) or (backdrop-filter: blur(14px))) {
+  .topbar {
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+}
+
+/* 左侧：站点标识（拼音 + 状态灯） */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .14em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.brand .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--glow);
+  flex: none;
+}
+
+/* 中部：导航锚点（由 JS 根据板块自动生成） */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex: 1;
+  justify-content: center;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav a {
+  position: relative;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  transition: color .25s ease, background-color .25s ease;
+}
+.nav a:hover { color: var(--text); text-decoration: none; }
+/* 当前所在板块高亮 */
+.nav a.is-active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* ── 主题切换器 ── */
+.theme-switcher { position: relative; flex: none; }
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* ★ 触控目标 ≥ 44×44px（Apple HIG / 微信可用性标准）：
+     用 min-height + min-width 保证移动端拇指可点，桌面端视觉不变。 */
+  min-height: 44px;
+  min-width: 44px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color .25s ease, box-shadow .25s ease;
+}
+.theme-toggle:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+.theme-toggle .swatches { display: flex; gap: 3px; }
+.theme-toggle .swatch {
+  width: 9px; height: 9px; border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18);
+}
+.theme-toggle .caret { font-size: 10px; color: var(--text-dim); }
+
+/* 展开的四主题选项面板 */
+.theme-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 210px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  /* 兜底：不透明背景（不支持毛玻璃的微信内核下也清晰可读） */
+  background: var(--surface);
+  box-shadow: 0 18px 40px rgba(0,0,0,.5);
+  display: none;
+}
+.theme-switcher.is-open .theme-menu { display: block; }
+
+/* 支持毛玻璃的环境再用半透明 + 模糊增强 */
+@supports ((-webkit-backdrop-filter: blur(16px)) or (backdrop-filter: blur(16px))) {
+  .theme-menu {
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .2s ease;
+}
+.theme-option:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.theme-option .swatch {
+  width: 14px; height: 14px; border-radius: 50%; flex: none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.2), 0 0 8px var(--glow);
+}
+.theme-option .meta { display: flex; flex-direction: column; line-height: 1.35; }
+.theme-option .meta small { color: var(--text-dim); font-size: 11px; }
+.theme-option[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.theme-option[aria-pressed="true"]::after {
+  content: "✓"; margin-left: auto; color: var(--accent); font-size: 12px;
+}
+
+
+/* ============================================================================
+   ⑤  Hero 主视觉（顶部个人信息）
+   ============================================================================ */
+.hero {
+  padding: calc(72px + var(--space-6)) 0 var(--space-5);
+}
+.hero-inner {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+/* 文字头像：HUD 圆形 + 状态环。有照片时自动改为 <img> */
+.avatar {
+  position: relative;
+  width: 132px; height: 132px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 62%),
+    var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent),
+              0 0 36px var(--glow) inset;
+  flex: none;
+}
+.avatar .glyph {
+  font-family: var(--font-display);
+  font-size: 54px;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 0 22px var(--glow);
+  line-height: 1;
+}
+.avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+/* 状态环：绕头像旋转的虚线环（装饰） */
+.avatar::after {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+  border: 1px dashed color-mix(in srgb, var(--accent) 55%, transparent);
+  opacity: .75;
+}
+
+.hero h1 {
+  font-size: clamp(32px, 6.4vw, 56px);
+  letter-spacing: .04em;
+}
+/* 姓名下方的拼音副标题 */
+.hero .pinyin {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .34em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+/* 一句话人设 */
+.hero .tagline {
+  margin-top: var(--space-2);
+  max-width: 62ch;
+  color: var(--text);
+  font-size: 15px;
+}
+/* 基本标签（性别 / 城市 / 身份） */
+.hero .meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: var(--space-3);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  font-size: 12.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.chip .k { color: var(--text); }
+.chip--accent {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+/* 数字仪表盘（HUD 风格，数据真实） */
+.meters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--border);
+}
+.meter {
+  padding: var(--space-3) var(--space-2);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  text-align: center;
+}
+.meter .num {
+  font-family: var(--font-mono);
+  font-size: clamp(20px, 3.4vw, 30px);
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 0 16px var(--glow);
+  display: block;
+  line-height: 1.2;
+}
+.meter .lbl {
+  display: block;
+  margin-top: 6px;
+  font-size: 11.5px;
+  letter-spacing: .1em;
+  color: var(--text-dim);
+}
+
+/* 「查看作品」「GitHub」等主行动按钮 */
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: var(--space-4); }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform .2s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.btn:hover { text-decoration: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+.btn--primary {
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  border-color: transparent;
+  color: #05080f;                       /* 渐变按钮上固定用深色字，保证对比度 */
+  font-weight: 600;
+}
+.btn--primary:hover { box-shadow: 0 0 22px var(--glow); }
+
+
+/* ============================================================================
+   ⑥  通用板块容器与卡片
+   ============================================================================ */
+.section { padding: var(--space-6) 0; }
+.section + .section { border-top: 1px solid var(--border); }
+.section[hidden] { display: none; }
+
+/* 板块标题：编号 + 标题 + 装饰线 */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+.section-head .idx {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .18em;
+  color: var(--accent);
+}
+.section-head h2 { font-size: clamp(20px, 3.2vw, 27px); }
+.section-head .line {
+  flex: 1;
+  min-width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+.section-sub { color: var(--text-dim); font-size: 13.5px; margin-top: 6px; }
+
+/* 通用卡片：玻璃拟态 + 发光描边
+   ★ 微信兼容：先给不透明背景兜底，再用 @supports 增强毛玻璃（见文件末尾的兼容段）。 */
+.card {
+  position: relative;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  /* 兜底：不透明渐变，任何环境都能正常显示 */
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--text) 5%, transparent) inset,
+              0 14px 34px rgba(0,0,0,.3);
+  transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+}
+.card:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--text) 6%, transparent) inset,
+              0 0 26px var(--glow);
+}
+
+/* HUD 四角装饰（用伪元素画四个小角标） */
+.hud-corners::before,
+.hud-corners::after {
+  content: "";
+  position: absolute;
+  width: 12px; height: 12px;
+  border: 1px solid var(--accent);
+  opacity: .6;
+  pointer-events: none;
+}
+.hud-corners::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.hud-corners::after  { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+
+
+/* ============================================================================
+   ⑦  各板块专属样式
+   ============================================================================ */
+
+/* ── 个人档案 ── */
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-2);
+}
+.kv {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+}
+.kv .k { font-size: 12.5px; color: var(--text-dim); letter-spacing: .06em; white-space: nowrap; }
+.kv .v { font-size: 14.5px; color: var(--text); text-align: right; }
+
+/* ── 教育背景（时间线） ── */
+.timeline { position: relative; padding-left: 30px; }
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 7px; top: 6px; bottom: 6px;
+  width: 1px;
+  background: linear-gradient(180deg, var(--accent), transparent);
+  opacity: .6;
+}
+.timeline-item { position: relative; }
+.timeline-item + .timeline-item { margin-top: var(--space-3); }
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -30px; top: 8px;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  background: var(--bg);
+  box-shadow: 0 0 12px var(--glow);
+}
+.timeline-item .when {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .14em;
+  color: var(--accent);
+}
+.timeline-item .title { font-size: 17px; margin-top: 4px; }
+.timeline-item .sub { color: var(--text-dim); font-size: 13.5px; margin-top: 2px; }
+.timeline-item .facts {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
+}
+
+/* ── 技能矩阵 ── */
+.skill-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-2);
+}
+.skill-group h3 {
+  font-size: 13px;
+  letter-spacing: .12em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  margin-bottom: 10px;
+}
+.skill-item + .skill-item { margin-top: 12px; }
+.skill-top {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+}
+.skill-top .n { font-size: 14px; }
+.skill-top .lv { font-size: 11.5px; color: var(--text-dim); font-family: var(--font-mono); }
+/* 熟练度可视化：3 格进度条（不做百分制打分，避免夸大） */
+.pips { display: flex; gap: 4px; margin-top: 6px; }
+.pip {
+  height: 5px; flex: 1;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 90%, transparent);
+  overflow: hidden;
+}
+.pip.on { background: linear-gradient(90deg, var(--accent), var(--accent-2)); box-shadow: 0 0 8px var(--glow); }
+.skill-note { font-size: 12px; color: var(--text-dim); margin-top: 5px; }
+
+/* ── 项目作品 ── */
+.project {
+  display: grid;
+  gap: var(--space-3);
+}
+.project-head {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+}
+.project-head h3 { font-size: clamp(18px, 2.6vw, 23px); }
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+  letter-spacing: .06em;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.project-role { color: var(--text-dim); font-size: 12.5px; }
+
+/* 技术栈标签 */
+.stack { display: flex; flex-wrap: wrap; gap: 7px; }
+.tag {
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+/* 项目亮点数据（label / value 成对） */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  overflow: hidden;
+  background: var(--border);
+}
+.fact {
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+}
+.fact .lbl { display: block; font-size: 11px; letter-spacing: .1em; color: var(--text-dim); }
+.fact .val {
+  display: block; margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--accent);
+  text-shadow: 0 0 12px var(--glow);
+}
+
+/* 要点列表 */
+.bullets { display: grid; gap: 8px; }
+.bullets li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 14px;
+  color: var(--text);
+}
+.bullets li::before {
+  content: "▸";
+  position: absolute; left: 2px; top: 0;
+  color: var(--accent);
+}
+
+/* 项目简介段落（保留换行） */
+.summary { white-space: pre-line; font-size: 14px; color: var(--text-dim); }
+.summary strong { color: var(--text); }
+
+/* 「展开详情」按钮与详情区 */
+.project-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.detail {
+  border-top: 1px dashed var(--border);
+  padding-top: var(--space-3);
+  display: none;                            /* 默认折叠 */
+}
+.project.is-expanded .detail { display: block; }
+.detail h4 {
+  font-size: 13px;
+  font-family: var(--font-mono);
+  letter-spacing: .12em;
+  color: var(--accent);
+  margin: var(--space-3) 0 10px;
+  text-transform: uppercase;
+}
+.detail h4:first-child { margin-top: 0; }
+/* 深度版内的键值表 */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.table th, .table td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.table th {
+  color: var(--text-dim);
+  font-weight: 400;
+  font-size: 12.5px;
+  white-space: nowrap;
+  width: 1%;
+}
+.table tr:last-child th, .table tr:last-child td { border-bottom: 0; }
+
+/* ── 荣誉资质 ── */
+.achievement-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: center;
+}
+.achievement-seal {
+  width: 74px; height: 74px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 65%);
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--accent);
+  text-shadow: 0 0 18px var(--glow);
+  flex: none;
+}
+.achievement-card h3 { font-size: 18px; }
+.achievement-card .sub { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
+.achievements-note {
+  margin-top: var(--space-2);
+  font-size: 12.5px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  letter-spacing: .06em;
+}
+
+/* ── 兴趣偏好 ── */
+.interests {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-2);
+}
+.interest { text-align: left; }
+.interest .ico { font-size: 26px; line-height: 1; }
+.interest .n { margin-top: 10px; font-size: 15.5px; font-family: var(--font-display); }
+.interest .d { margin-top: 4px; font-size: 12.5px; color: var(--text-dim); }
+
+/* ── 语言能力（并入技能板块下方，独立小卡） ── */
+.lang-row { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.lang {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 10px 14px;
+  border: 1px dashed var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+}
+.lang .n { font-size: 13.5px; }
+.lang .d { font-size: 12.5px; color: var(--text-dim); font-family: var(--font-mono); }
+
+/* ── 页脚 ── */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: var(--space-4) 0 var(--space-5);
+  color: var(--text-dim);
+  font-size: 12.5px;
+}
+.footer-inner {
+  display: flex; flex-wrap: wrap; gap: var(--space-2);
+  align-items: center; justify-content: space-between;
+}
+.footer .note { font-family: var(--font-mono); letter-spacing: .04em; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+/* 页脚「最后更新」时间戳：低对比度等宽小字（HUD 风格，可读性优先） */
+.footer-links .sync { font-family: var(--font-mono); letter-spacing: .06em; opacity: .82; }
+
+
+/* ============================================================================
+   ⑧  动效（入场淡入）。默认开启，若系统开启「减少动态效果」会自动关闭。
+   ============================================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  /* 滚动进入视口时淡入 + 轻微上移 */
+  .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity .5s ease, transform .5s ease;
+  }
+  .reveal.is-visible { opacity: 1; transform: none; }
+
+  /* 极客代码流主题：打字机光标闪烁（全站仅此一处常驻动画） */
+  [data-theme="geek-code"] .brand .dot { animation: blink 1.1s steps(2, start) infinite; }
+  @keyframes blink { to { opacity: .15; } }
+
+  /* 头像状态环缓慢旋转（装饰） */
+  .avatar::after { animation: spin 14s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+}
+
+/* 用户要求「减少动态效果」时：关闭全部动画与平滑滚动 */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+
+/* ============================================================================
+   ⑨  响应式断点
+   ──────────────────────────────────────────────────────────────────────────
+   必须覆盖客户要求的七档宽度：320 / 375 / 390 / 414 / 768 / 1440 / 1920 px。
+   设计策略：移动优先 + 从宽到窄逐级收敛。
+     1200px  ← 桌面窄屏
+      768px  ← 平板
+      480px  ← 大屏手机（414 / 390）
+      360px  ← 主流小屏（375 / 320）
+   ============================================================================ */
+
+/* ── ≤1200px：桌面偏窄，略收内边距 ── */
+@media (max-width: 1200px) {
+  .wrap { padding: 0 var(--space-3); }
+}
+
+/* ── ≤900px：平板。Hero 改单列，隐藏中部导航（改用悬浮切换按钮） ── */
+@media (max-width: 900px) {
+  .hero-inner { grid-template-columns: 1fr; justify-items: start; gap: var(--space-3); }
+  .avatar { width: 104px; height: 104px; }
+  .avatar .glyph { font-size: 42px; }
+  .nav { display: none; }
+  .brand .brand-text { display: none; }
+  .meters { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* ── ≤768px：平板竖屏 / 大屏手机。数字仪表盘改为两列 ── */
+@media (max-width: 768px) {
+  .meters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .skill-groups { grid-template-columns: 1fr; }
+  .profile-grid { grid-template-columns: 1fr; }
+  .project-head h3 { font-size: 19px; }
+  .table, .table th, .table td { font-size: 12.5px; }
+}
+
+/* ── ≤480px：大屏手机（414 / 390）。收紧排版，主题按钮收为图标 ── */
+@media (max-width: 480px) {
+  body { font-size: 15px; }
+  .wrap { padding: 0 var(--space-2); }
+  .section { padding: var(--space-5) 0; }
+  .topbar { padding: 8px var(--space-2); }
+  .hero { padding-top: calc(60px + var(--space-4)); }
+  .achievement-card { grid-template-columns: 1fr; justify-items: start; }
+  .theme-menu { min-width: 180px; right: 0; }
+  .theme-toggle .label-text { display: none; }   /* 只留色点，点击展开 */
+  .theme-toggle .caret { display: none; }
+  .interests { grid-template-columns: 1fr 1fr; }
+  .facts { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── ≤360px：小屏手机（375 / 320）。最紧排版，防溢出 ── */
+@media (max-width: 360px) {
+  body { font-size: 14.5px; }
+  .hero h1 { font-size: 28px; }
+  .section-head h2 { font-size: 18px; }
+  .chip { font-size: 11.5px; padding: 4px 9px; }
+  .meter .num { font-size: 19px; }
+  .meter { padding: 9px 6px; }
+  .interests { grid-template-columns: 1fr; }
+  .facts { grid-template-columns: 1fr; }
+  .avatar { width: 88px; height: 88px; }
+  .avatar .glyph { font-size: 34px; }
+  /* 320px 下长英文单词（如 react-hook-form）可能撑破卡片，强制允许断行 */
+  .tag, .stack, .summary, .bullets li, .table td { overflow-wrap: anywhere; word-break: break-word; }
+  /* ── 320px 横向溢出治理（QA 实测根因，两条叠加）─────────────────────────
+     根因 A：.chip 的 white-space:nowrap 让 Hero 那个长 accent 胶囊
+             「江苏大学梦溪学院 · 电气工程及其自动化 · 2026 级本科在读」
+             不可换行，min-content ≈ 325px，本身就超过 320px 视口。
+     根因 B：.hero-inner 是 grid-template-columns: auto 1fr，其中 1fr 列的
+             auto 最小值 = min-content，被上面的胶囊撑到 ≈ 327px。
+     修法：① 允许 grid/flex item 收缩到 min-content 以下（经典 min-width:0）；
+           ② 让长胶囊允许内部换行（nowrap 是溢出主因）。 */
+  .hero-inner > * { min-width: 0; }
+  .chip { white-space: normal; max-width: 100%; overflow-wrap: anywhere; }
+}
+
+
+/* ============================================================================
+   ⑨-b  微信内置浏览器（X5 / XWeb 内核）兼容段
+   ──────────────────────────────────────────────────────────────────────────
+   微信 Android 端的 X5 内核在若干版本上：① 不支持 backdrop-filter；
+   ② 对小字号有自动放大行为；③ fixed 元素滚动时可能抖动。
+   以下规则逐条兜底，**即使这部分全部失效，页面依然可读可用**。
+   ============================================================================ */
+
+/* 1) 小字号保护：部分 X5 版本会把 <12px 的字自动放大，导致排版错乱。
+      统一抬到 12px 下限，避免被"纠正"。 */
+@media screen and (max-width: 768px) {
+  .meter .lbl, .fact .lbl, .section-head .idx,
+  .footer .note, .theme-option .meta small {
+    font-size: 12px !important;
+  }
+}
+
+/* 2) 横向溢出总闸：任何情况下都不允许整页左右滚动（兜底，优先级最高） */
+html, body { max-width: 100%; overflow-x: hidden; }
+
+/* 3) fixed 头部抖动治理：给顶部栏一个稳定的合成层，并在滚动时不重排 */
+.topbar {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* 4) 图片类元素自适应，防止头像照片撑破布局 */
+img { max-width: 100%; height: auto; display: block; }
+
+/* 5) 触控设备：取消 hover 引起的"粘滞高亮"（移动端点击后 hover 态会残留） */
+@media (hover: none) {
+  .card:hover { border-color: var(--border); box-shadow: 0 1px 0 color-mix(in srgb, var(--text) 5%, transparent) inset, 0 14px 34px rgba(0,0,0,.3); }
+  .btn:hover, .theme-toggle:hover { box-shadow: none; }
+  .nav a:hover { color: var(--text-dim); }
+}
+
+
+/* ============================================================================
+   ⑩  打印 / 导出 PDF 样式
+   ============================================================================ */
+@media print {
+  .bg-decor, .topbar, .actions, .project-actions, .footer-links { display: none !important; }
+  body { background: #fff; color: #111; font-size: 12px; }
+  .card, .kv, .facts, .fact, .lang { background: #fff !important; border-color: #ccc !important; box-shadow: none !important; }
+  .section { padding: 14px 0; break-inside: avoid; }
+  .detail { display: block !important; }       /* 打印时展开全部详情 */
+  .meter .num, .fact .val, .timeline-item .when { color: #0a4a8a !important; text-shadow: none !important; }
+  a { color: #0a4a8a; }
+}
+
+/* ============================================================================
+   ⑪  backdrop-filter 增强（渐进增强，最后声明以保证优先级）
+   ──────────────────────────────────────────────────────────────────────────
+   不支持的浏览器直接忽略本段，使用上面 .card / .topbar / .theme-menu 的不透明兜底。
+   ============================================================================ */
+@supports ((-webkit-backdrop-filter: blur(10px)) or (backdrop-filter: blur(10px))) {
+  .card {
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--surface) 92%, transparent),
+      color-mix(in srgb, var(--surface-2) 88%, transparent));
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+}
+</style>
+</head>
+
+<body>
+<!-- 装饰层：背景网格 / 扫描线（aria-hidden 表示对读屏软件隐藏） -->
+<div class="bg-decor" aria-hidden="true"></div>
+
+<div class="page">
+
+  <!--
+    ── 顶部栏 ──────────────────────────────────────────────────────────
+    左侧站点标识由 JS 写入；中部导航由 renderNav() 自动生成；
+    右侧主题切换按钮由 bindThemeSwitcher() 自动生成四个选项。
+  -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot" aria-hidden="true"></span>
+      <span class="brand-text" id="brandText"></span>
+    </div>
+
+    <nav class="nav" id="nav" aria-label="板块导航"></nav>
+
+    <!-- 主题切换器（右上角固定悬浮，滚动不消失） -->
+    <div class="theme-switcher" id="themeSwitcher">
+      <button
+        class="theme-toggle"
+        id="themeToggle"
+        type="button"
+        aria-haspopup="true"
+        aria-expanded="false"
+        aria-label="切换配色主题">
+        <span class="swatches" aria-hidden="true">
+          <span class="swatch" style="background:#4da3ff"></span>
+          <span class="swatch" style="background:#ff2d95"></span>
+          <span class="swatch" style="background:#33ff66"></span>
+          <span class="swatch" style="background:#ffb000"></span>
+        </span>
+        <span class="label-text" id="themeToggleLabel">深空冷峻</span>
+        <span class="caret" aria-hidden="true">▼</span>
+      </button>
+      <!-- 四个主题选项由 JS 依据 THEMES 自动生成，加主题时无需改 HTML -->
+      <div class="theme-menu" id="themeMenu" role="group" aria-label="主题选项"></div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ── Hero 主视觉 ──────────────────────────────────────────────── -->
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-inner">
+          <!-- 头像：由 renderProfile() 写入（有照片渲染 <img>，无照片渲染首字） -->
+          <div class="avatar" id="avatar" aria-hidden="true"></div>
+          <div>
+            <h1 id="heroName"></h1>
+            <p class="pinyin" id="heroPinyin"></p>
+            <p class="tagline" id="heroTagline"></p>
+            <div class="meta-row" id="heroMeta"></div>
+            <!-- 数字仪表盘（HUD 风格） -->
+            <div class="meters" id="heroMeters"></div>
+            <!-- 主行动按钮 -->
+            <div class="actions" id="heroActions"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!--
+      ── 六大板块（个人档案 / 教育背景 / 技能矩阵 / 项目作品 / 荣誉资质 / 兴趣偏好）──
+      ★ 板块的「顺序 / 显隐 / 标题 / 锚点 id」全部由 JS 里的 SECTION_CONFIG 驱动，
+        这里只保留一个空的挂载点，不再硬编码任何一个板块。
+      ★ 想隐藏某个板块 或 调整板块顺序 → 改 SECTION_CONFIG（Ctrl+F 搜索 "SECTION_CONFIG"）。
+      ★ 锚点 id 由 buildSections() 用 cfg.key 赋值，这里不需要（也不应该）手写任何板块 id。
+    -->
+    <div id="sectionsRoot"></div>
+
+  </main>
+
+  <!-- ── 页脚 ──────────────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span class="note" id="footerNote"></span>
+      <div class="footer-links" id="footerLinks"></div>
+    </div>
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================================
+ *  目录
+ *    PART 1 · 个人信息配置区（PROFILE）—— ★ 你只需要改这一块
+ *    PART 1.5 · 板块配置区（SECTION_CONFIG）—— 控制板块顺序与显隐
+ *    PART 2 · 主题配置区（THEMES）
+ *    PART 3 · 工具函数（DOM 助手、占位符判断）
+ *    PART 4 · 渲染函数（把 PROFILE 变成页面）
+ *    PART 5 · 主题服务（applyTheme / initTheme / bindThemeSwitcher）
+ *    PART 6 · 交互增强（滚动高亮 / 入场动画 / 打印）
+ *    PART 7 · 总入口 init()
+ * ============================================================================ */
+
+
+/* ============================================================================
+ *  PART 1 · 个人信息配置区
+ *  ──────────────────────────────────────────────────────────────────────────
+ *  ▼ 你只需要改这一块，页面上的所有内容都会跟着变。
+ *  ▼ 每一项后面都写了「改这里会怎样」，照着改就不会错。
+ *  ▼ 不确定的字段可以留空字符串 '' 或空数组 []，页面会自动跳过（不会报错）。
+ *  ▼ 想加项目 / 技能 / 兴趣：在对应数组里照着现有格式加一项即可。
+ * ============================================================================ */
+const PROFILE = {
+
+  /* ── 页面更新时间：显示在页脚，让访客知道这是「活的」简历 ── */
+  updatedAt: '2026-09',               // ★ 格式必须是 'YYYY-MM'（页脚显示「最后更新：2026-09」）
+                                      //   每次改了内容，把这里改成当前年月即可（只改这 1 处）
+
+  /* ── 基本信息：页面顶部（Hero）和「个人档案」板块都会用到 ── */
+  identity: {
+    name: '付加旺',                    // 改这里 → 页面上所有出现名字的地方都会变
+    pinyin: 'FU JIAWANG',             // 姓名拼音副标题（改这里 → Hero 大标题下方的字母行）
+    gender: '男',                      // 性别
+    city: '江苏 · 镇江',                // 所在城市
+    // 改这里 → 首页大标题下方的一句话人设（语气客观，不加形容词）
+    tagline: '电气工程及其自动化专业大一在读。在业余时间以 AI 辅助开发的方式，独立完成产品设计、技术选型与数据流水线搭建，交付了一款已上线的四六级词汇记忆 PWA。',
+    // 当前身份（Hero 与个人档案板块共用）
+    headline: '江苏大学梦溪学院 · 电气工程及其自动化 · 2026 级本科在读',
+    // 头像：留空 '' 时自动用下方 avatarText 的文字头像；填图片地址时自动改用图片
+    avatar: '',
+    avatarText: '付',                  // 文字头像里显示的字（没有照片时使用）
+    // Hero 上的核心标签，可增删（加一项就在数组里加一个字符串）
+    tags: ['电气工程', 'AI 学习者', 'Vibe Coding']
+  },
+
+  /* ── 联系方式 ────────────────────────────────────────────────────
+     ⚠️ email 是占位符，页面会自动隐藏带「待填写」字样的行，不会显示占位文字。
+     以后填了真实邮箱，这一行会自动出现在页脚。
+     ⚠️ 手机号字段保留但留空 —— 公开网页上的手机号会被爬虫抓取，招致骚扰电话。
+        如确需公开请自行填写；不填时页面不会出现该行。
+     ⚠️ 当前页面只展示 GitHub 一个联系方式（Hero + 页脚各一处入口）。 */
+  contact: {
+    email: '${待填写}',                                         // 改这里 → 页脚出现邮箱（留占位符则自动隐藏）
+    github: 'https://github.com/fjw66666666',                   // 改这里 → Hero 与页脚的 GitHub 入口链接
+    phone: ''                                                   // ⚠️ 如需公开请自行填写；公开网页的手机号可能被爬虫抓取，建议谨慎
+  },
+
+  /* ── 教育背景：按时间倒序排列（最新的放最前面） ── */
+  education: [
+    {
+      school: '江苏大学',               // 学校（改这里 → 教育板块标题变化）
+      college: '梦溪学院',              // 学院
+      // 学院定位说明（已核实：梦溪学院为江苏大学拔尖创新人才培养荣誉学院）
+      // 改这里 → 教育板块标题后的括注文字
+      collegeNote: '拔尖创新人才培养荣誉学院',
+      // ★ 班型（故意不叫 className：DOM 已有同名属性 el.className，
+      //   一旦误写 el.className = edu.className 会静默清空元素全部 CSS 类，
+      //   样式崩塌且控制台零报错。改用 classTitle 从命名上消除碰撞）
+      classTitle: '金山英才班',           // 班型（客户已确认）→ 显示为副标题的一部分
+      // 班型说明（承载"全校理工科新生中选拔"等说明，默认不展示）
+      classNote: '全校理工科新生中选拔',
+      major: '电气工程及其自动化',       // 专业
+      degree: '本科（在读）',            // 学历层次
+      period: '2026 — 2030',           // 起止时间（时间线上方的小字）
+      status: '大一在读',               // 当前状态
+      /* 高考成绩备注（供客户自行决定是否启用，默认不展示）：
+         2026 江苏物理类：本科线 456、特殊类型招生控制线 513。
+         608 分 ≈ 超特控线 95 分。
+         如需加强表述，可把下面 highlights 里的「高考 608 分」改成：
+           '高考 608 分（江苏物理类，超特殊类型招生控制线 95 分）'
+         ⚠️ 不要写「超一本线」，江苏已改称「特殊类型招生控制线」。 */
+      gaokaoScore: 608,
+      gaokaoNote: '江苏物理类',          // 高考省份科类（默认不展示，需要时用）
+      /* ⚠️ 诚信红线：以下均为「班级 / 学院的集体数据」，严禁写成客户个人成就：
+         深造率 80%、奖学金覆盖 63%、六级通过率 100%、SCI 论文 10 篇、
+         国家级荣誉 80 余人次、百余人赴牛津剑桥 —— 一律不得作为个人成绩展示。
+         ⚠️ 也严禁写「保研 / 直博 / 免试推荐研究生」——那是培养政策，
+            客户才大一，尚未发生。如确要提及，只能写
+            「所在班级设置有免试推荐研究生计划」。 */
+      highlights: [                    // 亮点列表，可增删
+        '高考 608 分',
+        '预计 2030 年毕业',
+        '当前重心：专业学习与作品积累'
+      ]
+    }
+  ],
+
+  /* ── 技能矩阵 ─────────────────────────────────────────────────────
+     level 只能是 1 / 2 / 3：
+        3 = 能独立完成项目      （3 格全亮）
+        2 = 学过并能实际使用    （亮 2 格）
+        1 = 正在学习            （亮 1 格）
+     说明：这里用「格数」而非百分制打分，避免出现「熟练度 87%」这类无依据表述。
+     分组名 group 相同的技能会自动归到一个卡片里。 */
+  skills: [
+    { group: '编程与工具', name: 'TypeScript / React 19', level: 3, note: '能用于构建完整上线作品（词忆 CET 主语言）' },
+    { group: '编程与工具', name: 'Vite 7 / Tailwind CSS 3', level: 3, note: '在项目中实际使用' },
+    { group: '编程与工具', name: 'Radix UI / Recharts / react-router 7', level: 2, note: '在项目中实际使用' },
+    { group: '编程与工具', name: 'Python', level: 2, note: '有实际使用（词库生成与校验脚本）' },
+    { group: '编程与工具', name: 'PWA / Service Worker / localStorage', level: 3, note: '在项目中实际落地（离线缓存 + 数据本地存储）' },
+
+    { group: '算法与工程', name: '间隔重复调度（SM-2 改进版）', level: 3, note: '独立实现纯函数调度引擎，含三档自评与防复习雪崩机制' },
+    { group: '算法与工程', name: '自动化脚本与 CI', level: 2, note: '编写 13 个 Python/TS 自动化脚本，配置 2 条 GitHub Actions 流水线' },
+
+    { group: 'AI 方向', name: 'AI 应用与提示词工程', level: 2, note: '已取得阿里巴巴 AI 初级训练师资格证' },
+    { group: 'AI 方向', name: 'AI 协作交付方法论', level: 2, note: '用 AI 完成需求拆解、数据流水线与工程规范 —— AI 是工具，交付物是标准' },
+
+    { group: '正在学习', name: 'Vibe Coding / AI 辅助开发', level: 1, note: '正在学习' }
+  ],
+
+  /* ── 语言能力（渲染在技能板块下方） ── */
+  languages: [
+    // ★ 如实表述：已报考但尚未出分，绝不写成「已通过」
+    { name: '英语', detail: 'CET-4 已报考，尚未出分' }
+  ],
+
+  /* ── 项目作品 ─────────────────────────────────────────────────────
+     加一个项目 = 在 projects 数组里加一项（照抄一份改内容即可）。
+     detailLevel 控制详略档位（本项目默认 'deep'）：
+        'brief'    → 只有一句话简介
+        'standard' → 展示规模 / 内容 / 算法 / 技术栈（未填写时的兜底档）
+        'deep'     → 在 standard 内容之上，再追加「展开详情」的深度表格
+     即：'deep' = standard 档内容直接可见 + 深度表格初始收起，点「展开详情」查看。 */
+  projects: [
+    {
+      name: '词忆 CET · 四六级词汇记忆 PWA',
+      role: '独立完成产品设计、技术选型与数据流水线搭建；编码实现阶段采用 AI 辅助开发（Vibe Coding）',
+      badge: 'AI 辅助开发 · 4 天交付',       // 项目卡标题旁的短标签
+      detailLevel: 'deep',                 // 'brief' | 'standard' | 'deep'
+      // 一句话版（brief 档使用；standard/deep 档作为导语）
+      summary: '一个由 AI 辅助开发、4 天完成并已上线的四六级词汇记忆 Web 应用。',
+      // 技术栈标签
+      stack: [
+        'React 19', 'TypeScript 5.9', 'Vite 7', 'Tailwind CSS 3',
+        'Radix UI', 'Recharts', 'react-router 7',
+        'react-hook-form', 'zod', 'PWA'
+      ],
+      // 亮点数据（label / value 成对，用事实说话）
+      facts: [
+        { label: '代码规模', value: '11,914 行' },
+        { label: '源文件',   value: '103 个' },
+        { label: '功能页面', value: '9 个' },
+        { label: '词库规模', value: '8,543 词' },
+        { label: '开发周期', value: '4 天' },
+        { label: '自动化',   value: '13 脚本 / 2 CI' }
+      ],
+      // 标准版要点（standard 档展示；deep 档同样保留）
+      highlights: [
+        '工程规模：11,914 行 TypeScript / TSX 代码，103 个源文件，9 个功能页面，配套 13 个 Python/TS 自动化脚本与 2 条 CI 流水线',
+        '内容规模：CET-4 词库 4,545 词 + CET-6 词库 3,998 词，重叠词自动去重并继承学习进度；341 个精编词条含音标、真题例句、词根助记与形近辨析',
+        '核心算法：独立实现的改进版 SM-2 间隔重复调度引擎（纯函数），按「认识 / 模糊 / 忘记」三档自评走不同策略，间隔阶梯 10 分钟 → 1 天 → 3 天 → 7 天 → 15 天 → 30 天，并内置防止复习雪崩的节流机制',
+        '学习机制：强调主动回忆（先作答再自评），配合 XP 等级、连胜记录、12 周打卡热力图与 12 枚成就徽章',
+        '工程形态：PWA 离线可用，数据全存本地不上传；配置 2 条 GitHub Actions 流水线实现自动构建与内容更新'
+      ],
+      // 深度版内容（点「展开详情」后显示）
+      deep: {
+        tables: [
+          {
+            title: '项目概况',
+            rows: [
+              ['定位', '面向四六级考生的间隔重复词汇记忆工具'],
+              ['开发周期', '4 天（AI 辅助 / Vibe Coding）'],
+              ['上线状态', '已部署 GitHub Pages'],
+              ['主语言', 'TypeScript'],
+              ['代码规模', '11,914 行 TS/TSX，103 个源文件'],
+              ['自动化', '13 个 Python/TS 脚本，2 条 GitHub Actions 流水线']
+            ]
+          },
+          {
+            title: '技术栈（package.json 实证）',
+            rows: [
+              ['框架 / 语言', 'React 19 + TypeScript 5.9'],
+              ['构建 / 样式', 'Vite 7 + Tailwind CSS 3'],
+              ['UI 组件', 'Radix UI 全套'],
+              ['路由 / 图表', 'react-router 7 / Recharts'],
+              ['表单与校验', 'react-hook-form + zod'],
+              ['离线能力', 'PWA（manifest + Service Worker）']
+            ]
+          },
+          {
+            title: '核心算法（SM-2 改进版）',
+            rows: [
+              ['每词状态', 'ef / reps / lapses / interval_min / next_review_at'],
+              ['三档自评', '认识 / 模糊 / 忘记 → 分别走不同间隔与难度因子更新分支'],
+              ['间隔阶梯', '10 分钟 → 1 天 → 3 天 → 7 天 → 15 天 → 30 天'],
+              ['防雪崩机制', '当到期复习量 > 每日新词量 × 3 时，自动暂停推送新词'],
+              ['实现方式', '纯函数调度引擎，便于测试与复用']
+            ]
+          },
+          {
+            title: '工程化与数据',
+            rows: [
+              ['数据存储', '全部落 localStorage，隐私本地化，无服务端'],
+              ['自动化', '13 个 Python/TS 脚本 + 2 条 GitHub Actions 流水线'],
+              ['工程文档', 'README.md / DESIGN.md（产品设计文档）/ CONTRIBUTING.md'],
+              ['词库流水线', 'Python 脚本批量生成词库（词表 + 音标 + 词频三源合并）']
+            ]
+          },
+          {
+            title: '我的角色与协作方式',
+            rows: [
+              ['产品与设计', '独立完成产品设计、技术选型与数据流水线搭建'],
+              ['编码实现', '编码实现阶段采用 AI 辅助开发（Vibe Coding），4 天完成交付'],
+              ['具体产出', 'DESIGN.md 产品设计文档、13 个自动化脚本、2 条 CI 流水线、README / CONTRIBUTING 规范']
+            ]
+          }
+        ]
+      },
+      // 外链（一律新窗口打开）
+      links: [
+        { label: '在线体验', url: 'https://fjw66666666.github.io/cetyi-cet-vocab/' },
+        { label: '源码仓库', url: 'https://github.com/fjw66666666/cetyi-cet-vocab' }
+      ]
+    }
+  ],
+
+  /* ── 荣誉资质：目前只有 1 项，如实写 ── */
+  achievements: [
+    {
+      name: '阿里巴巴 AI 初级训练师',
+      type: '资格证',
+      status: '已获得',
+      note: '方向：AI 应用基础与提示词工程'
+    }
+  ],
+  // 改这里 → 荣誉板块底部的补充说明（中性表述，不暴露「暂无奖项」）
+  achievementsNote: 'CERT_01 · 持续积累中',
+
+  /* ── 兴趣偏好（三张卡，用于调节页面节奏） ── */
+  interests: [
+    { name: '打乒乓球', icon: '🏓', desc: '业余爱好，课后常打' },
+    { name: '玩游戏',   icon: '🎮', desc: '喜欢玩游戏' },
+    { name: '看小说',   icon: '📖', desc: '喜欢阅读小说' }
+  ],
+
+  /* ── Hero 数字仪表盘：展示 4 个真实数字（数字全部来自上面已核实的事实） ── */
+  meters: [
+    { num: '11,914', label: '行代码' },
+    { num: '103',    label: '源文件' },
+    { num: '8,543',  label: '词库容量' },
+    { num: '4',      label: '天交付' }
+  ],
+
+  /* ── 页脚文案 ── */
+  footer: {
+    note: '本站由 AI 辅助生成 · 内容持续更新中'
+  }
+};
+
+
+/* ============================================================================
+ *  PART 1.5 · 板块配置区（SECTION_CONFIG）
+ *  ──────────────────────────────────────────────────────────────────────────
+ *  ★ 控制六大板块的「顺序」与「显隐」——这是本站的「结构层」，与内容层（PROFILE）
+ *     和主题层（THEMES）相互独立。
+ *  ★ 想隐藏某个板块 → 把它的 hidden 改成 true（导航项会一起消失）。
+ *  ★ 想调整顺序     → 直接调整下面数组里各条的先后顺序。
+ *  ★ key 必须与板块锚点 id 逐字一致；锚点 id 由 buildSections() 用 key 自动赋值，
+ *     HTML 里不再手写 id（否则「配置改了、锚点没改」会造成跳转失效）。
+ *  ★ slots 描述每个板块内部的「内容容器」：id 是渲染函数的写入落点，
+ *     cls 是它的样式类。新增板块时需要同步补一个对应的 render* 函数。
+ *  ⚠️ 一般不需要改 slots；改标题 / 调顺序 / 隐藏板块只动 title / hidden / 数组顺序即可。
+ * ============================================================================ */
+const SECTION_CONFIG = [
+  // key            标题          显隐          内容容器（id = 渲染落点，cls = 样式类）
+  { key: 'profile',      title: '个人档案', hidden: false, slots: [ { id: 'profileGrid',     cls: 'profile-grid' } ] },
+  { key: 'education',    title: '教育背景', hidden: false, slots: [ { id: 'educationCard',   cls: 'card hud-corners' } ] },
+  { key: 'skills',       title: '技能矩阵', hidden: false, slots: [ { id: 'skillGroups',     cls: 'skill-groups' },
+                                                                      { id: 'langRow',         cls: 'lang-row' } ] },
+  { key: 'projects',     title: '项目作品', hidden: false, slots: [ { id: 'projectCard',     cls: 'card hud-corners project' } ] },
+  { key: 'achievements', title: '荣誉资质', hidden: false, slots: [ { id: 'achievementCard', cls: 'card hud-corners' } ] },
+  { key: 'interests',    title: '兴趣偏好', hidden: false, slots: [ { id: 'interestGrid',    cls: 'interests' } ] }
+];
+
+
+/* ============================================================================
+ *  PART 2 · 主题配置区
+ *  ──────────────────────────────────────────────────────────────────────────
+ *  ★ 每个主题对应 CSS 里的一段 [data-theme="xxx"] { --bg: ...; }
+ *  ★ 想加第五套主题：① 这里加一项；② CSS 里加一段同名覆盖块。
+ *     顶部按钮由本对象自动生成，所以你不用动 HTML。
+ *  ★ 想换配色：只改对应 CSS 覆盖块里的颜色值即可。
+ * ============================================================================ */
+const THEMES = {
+  // key 必须与 CSS 里的 [data-theme="key"] 完全一致，否则切换不生效
+  'deep-space': { label: '深空冷峻',   desc: '冷峻、克制、信任感', swatch: '#4da3ff' },
+  'cyber-neon': { label: '赛博霓虹',   desc: '高能、夜之城',       swatch: '#ff2d95' },
+  'geek-code':  { label: '极客代码流', desc: '终端、极简',         swatch: '#33ff66' },
+  'hud-panel':  { label: 'HUD 仪表',   desc: '军工、精密',         swatch: '#ffb000' }
+};
+
+const DEFAULT_THEME = 'deep-space';        // 改这里 → 默认打开时用哪套主题
+const THEME_STORAGE_KEY = 'resume-theme';  // localStorage 键名（一般不用改）
+
+
+/* ============================================================================
+ *  PART 3 · 工具函数
+ *  ──────────────────────────────────────────────────────────────────────────
+ *  ⚠️ 以下属于「逻辑层」，通常不需要改。想改内容请回到 PART 1 的 PROFILE。
+ * ============================================================================ */
+
+/**
+ * 判断某个值是不是「未填写的占位符」。
+ * 作用：配置里写了 ${待填写} 之类的占位符时，页面自动隐藏该行，
+ *      避免页面上出现「待填写」字样。
+ * @param {*} value - 待检测的值
+ * @returns {boolean} true 表示是占位符（应隐藏）
+ */
+function isPlaceholder(value) {
+  if (value === null || value === undefined) return true;
+  const text = String(value).trim();
+  if (text === '') return true;
+  // 形如 ${xxx} 的模板占位符，或写明“待填写”的文本，一律视为未填写
+  return /\$\{[^}]*\}/.test(text) || text.indexOf('待填写') !== -1;
+}
+
+/**
+ * 创建一个元素并设置属性 / 文本，减少重复代码。
+ * @param {string} tag - 标签名，如 'div'
+ * @param {Object} [options] - { className, text, html, attrs }
+ * @returns {HTMLElement}
+ */
+function el(tag, options) {
+  const node = document.createElement(tag);
+  const opt = options || {};
+  if (opt.className) node.className = opt.className;
+  if (opt.text !== undefined && opt.text !== null) node.textContent = String(opt.text);
+  if (opt.html !== undefined && opt.html !== null) node.innerHTML = opt.html;
+  if (opt.attrs) {
+    Object.keys(opt.attrs).forEach(function (key) {
+      if (opt.attrs[key] !== null && opt.attrs[key] !== undefined) {
+        node.setAttribute(key, String(opt.attrs[key]));
+      }
+    });
+  }
+  return node;
+}
+
+/**
+ * 清空一个容器（保证渲染幂等：重复调用不会叠加内容）。
+ * @param {HTMLElement|null} container
+ */
+function clear(container) {
+  if (container) container.innerHTML = '';
+}
+
+/**
+ * 取元素（带空值保护）。
+ * @param {string} id
+ * @returns {HTMLElement|null}
+ */
+function byId(id) {
+  return document.getElementById(id);
+}
+
+
+/* ============================================================================
+ *  PART 4 · 渲染函数
+ *  ──────────────────────────────────────────────────────────────────────────
+ *  ⚠️ 一般来说你不用改这些函数。
+ *      · 想改文字 / 加项目 / 加技能 → 改 PART 1 的 PROFILE
+ *      · 想改颜色                  → 改 CSS 里的主题变量
+ *      · 想改板块标题 / 隐藏 / 调序 → 改 PART 1.5 的 SECTION_CONFIG
+ * ============================================================================ */
+
+/**
+ * 渲染 Hero（顶部主视觉）与「个人档案」板块
+ * @param {Object} identity - 来自 PROFILE.identity
+ * @param {Object} contact  - 来自 PROFILE.contact
+ * @param {Array}  meters   - 来自 PROFILE.meters（数字仪表盘）
+ */
+function renderProfile(identity, contact, meters) {
+  // 1) 浏览器标签页标题（跟随姓名变化）
+  document.title = identity.name + ' · 个人主页';
+
+  // 2) 顶部栏左侧标识（姓名拼音）
+  const brandText = byId('brandText');
+  if (brandText) brandText.textContent = identity.pinyin || identity.name;
+
+  // 3) 头像：有图片地址就渲染 <img>，否则渲染「文字头像」
+  //    这是唯一一处头像渲染逻辑 —— 以后加照片只需改 PROFILE.identity.avatar
+  const avatar = byId('avatar');
+  if (avatar) {
+    clear(avatar);
+    if (!isPlaceholder(identity.avatar)) {
+      avatar.appendChild(el('img', {
+        attrs: { src: identity.avatar, alt: identity.name + ' 的头像' }
+      }));
+    } else {
+      avatar.appendChild(el('span', { className: 'glyph', text: identity.avatarText || (identity.name || '·').slice(0, 1) }));
+    }
+  }
+
+  // 4) Hero 文字
+  const heroName = byId('heroName');
+  if (heroName) heroName.textContent = identity.name;
+
+  const heroPinyin = byId('heroPinyin');
+  if (heroPinyin) heroPinyin.textContent = identity.pinyin || '';
+
+  const heroTagline = byId('heroTagline');
+  if (heroTagline) heroTagline.textContent = identity.tagline || '';
+
+  // 5) Hero 基本标签：身份 / 性别 / 城市 / 自定义标签
+  const heroMeta = byId('heroMeta');
+  if (heroMeta) {
+    clear(heroMeta);
+    // 身份用强调样式
+    if (identity.headline) {
+      heroMeta.appendChild(el('span', { className: 'chip chip--accent', text: identity.headline }));
+    }
+    if (identity.gender) {
+      heroMeta.appendChild(el('span', { className: 'chip', html: '<span class="k">性别</span> ' + identity.gender }));
+    }
+    if (identity.city) {
+      heroMeta.appendChild(el('span', { className: 'chip', html: '<span class="k">坐标</span> ' + identity.city }));
+    }
+    (identity.tags || []).forEach(function (tag) {
+      if (isPlaceholder(tag)) return;
+      heroMeta.appendChild(el('span', { className: 'chip', text: tag }));
+    });
+  }
+
+  // 6) 数字仪表盘
+  const heroMeters = byId('heroMeters');
+  if (heroMeters) {
+    clear(heroMeters);
+    (meters || []).forEach(function (item) {
+      const box = el('div', { className: 'meter' });
+      box.appendChild(el('span', { className: 'num', text: item.num }));
+      box.appendChild(el('span', { className: 'lbl', text: item.label }));
+      heroMeters.appendChild(box);
+    });
+  }
+
+  // 7) Hero 主行动按钮：查看作品 + GitHub 入口（醒目入口之一）
+  const heroActions = byId('heroActions');
+  if (heroActions) {
+    clear(heroActions);
+    heroActions.appendChild(el('a', {
+      className: 'btn btn--primary',
+      text: '查看项目作品',
+      attrs: { href: '#projects' }
+    }));
+    if (!isPlaceholder(contact.github)) {
+      heroActions.appendChild(el('a', {
+        className: 'btn',
+        text: 'GitHub 主页',
+        attrs: { href: contact.github, target: '_blank', rel: 'noopener noreferrer' }
+      }));
+    }
+  }
+
+  // 8) 「个人档案」板块的键值表
+  const grid = byId('profileGrid');
+  if (grid) {
+    clear(grid);
+    const rows = [
+      { k: '姓名', v: identity.name },
+      { k: '性别', v: identity.gender },
+      { k: '坐标', v: identity.city },
+      { k: '当前身份', v: identity.headline },
+      { k: '方向', v: 'AI 应用 · 前端工程（业余方向）' },
+      { k: 'GitHub', v: '查看主页', link: contact.github }
+    ];
+    rows.forEach(function (row) {
+      if (isPlaceholder(row.v)) return;   // 未填写的行自动隐藏
+      const box = el('div', { className: 'kv' });
+      box.appendChild(el('span', { className: 'k', text: row.k }));
+      if (row.link) {
+        box.appendChild(el('a', {
+          className: 'v',
+          text: row.v,
+          attrs: { href: row.link, target: '_blank', rel: 'noopener noreferrer' }
+        }));
+      } else {
+        box.appendChild(el('span', { className: 'v', text: row.v }));
+      }
+      grid.appendChild(box);
+    });
+  }
+}
+
+/**
+ * 渲染「教育背景」板块（时间线形式）
+ * @param {Array} items - 来自 PROFILE.education
+ */
+function renderEducation(items) {
+  const card = byId('educationCard');
+  if (!card) return;
+  clear(card);
+
+  const timeline = el('div', { className: 'timeline' });
+  (items || []).forEach(function (item) {
+    const row = el('div', { className: 'timeline-item' });
+
+    if (!isPlaceholder(item.period)) {
+      row.appendChild(el('div', { className: 'when', text: item.period }));
+    }
+    // 标题：学校 · 学院（学院若有定位说明，用括注跟在后面）
+    const titleParts = [item.school, item.college].filter(function (p) { return !isPlaceholder(p); });
+    let titleText = titleParts.join(' · ');
+    if (!isPlaceholder(item.collegeNote)) {
+      titleText += '（' + item.collegeNote + '）';
+    }
+    row.appendChild(el('div', { className: 'title', text: titleText }));
+
+    // 副标题：班型 / 专业 / 学历 / 状态
+    // ⚠️ 这里读的是 item.classTitle（不是 item.className）
+    const subParts = [item.classTitle, item.major, item.degree, item.status]
+      .filter(function (p) { return !isPlaceholder(p); });
+    if (subParts.length) {
+      row.appendChild(el('div', { className: 'sub', text: subParts.join(' ｜ ') }));
+    }
+
+    // 亮点标签
+    const facts = el('div', { className: 'facts' });
+    (item.highlights || []).forEach(function (text) {
+      if (isPlaceholder(text)) return;
+      facts.appendChild(el('span', { className: 'chip', text: text }));
+    });
+    if (facts.childNodes.length) row.appendChild(facts);
+
+    timeline.appendChild(row);
+  });
+
+  card.appendChild(timeline);
+}
+
+/**
+ * 渲染「技能矩阵」板块 + 语言能力
+ * @param {Array} skills - 来自 PROFILE.skills
+ * @param {Array} languages - 来自 PROFILE.languages
+ */
+function renderSkills(skills, languages) {
+  const groups = byId('skillGroups');
+  if (groups) {
+    clear(groups);
+
+    // 1) 按 group 字段分组（保持配置里的先后顺序）
+    const order = [];
+    const bucket = {};
+    (skills || []).forEach(function (skill) {
+      const key = skill.group || '其他';
+      if (!bucket[key]) { bucket[key] = []; order.push(key); }
+      bucket[key].push(skill);
+    });
+
+    // 2) 逐个渲染分组卡片
+    order.forEach(function (groupName) {
+      const card = el('div', { className: 'card hud-corners skill-group' });
+      card.appendChild(el('h3', { text: groupName }));
+
+      bucket[groupName].forEach(function (skill) {
+        const item = el('div', { className: 'skill-item' });
+
+        const top = el('div', { className: 'skill-top' });
+        top.appendChild(el('span', { className: 'n', text: skill.name }));
+        top.appendChild(el('span', { className: 'lv', text: levelText(skill.level) }));
+        item.appendChild(top);
+
+        // 3 格进度条：level 为几就亮几格
+        const pips = el('div', { className: 'pips', attrs: { 'aria-hidden': 'true' } });
+        for (let i = 1; i <= 3; i++) {
+          pips.appendChild(el('span', { className: 'pip' + (i <= (skill.level || 1) ? ' on' : '') }));
+        }
+        item.appendChild(pips);
+
+        if (!isPlaceholder(skill.note)) {
+          item.appendChild(el('div', { className: 'skill-note', text: skill.note }));
+        }
+        card.appendChild(item);
+      });
+
+      groups.appendChild(card);
+    });
+  }
+
+  // 4) 语言能力（挂在技能板块下方）
+  const langRow = byId('langRow');
+  if (langRow) {
+    clear(langRow);
+    (languages || []).forEach(function (lang) {
+      const box = el('div', { className: 'lang' });
+      box.appendChild(el('span', { className: 'n', text: lang.name }));
+      box.appendChild(el('span', { className: 'd', text: lang.detail }));
+      langRow.appendChild(box);
+    });
+  }
+}
+
+/**
+ * 把技能 level 数字翻译成人能读的说明。
+ * @param {number} level - 1 / 2 / 3
+ * @returns {string}
+ */
+function levelText(level) {
+  if (level === 3) return 'L3 · 能独立完成';
+  if (level === 2) return 'L2 · 实际使用';
+  return 'L1 · 正在学习';
+}
+
+/**
+ * 渲染「项目作品」板块（支持 brief / standard / deep 三档详略）
+ * @param {Array} items - 来自 PROFILE.projects
+ */
+function renderProjects(items) {
+  const card = byId('projectCard');
+  if (!card) return;
+  clear(card);
+
+  // 目前只有一张主卡片：取第一个项目渲染（多项目时可改成循环 appendChild）
+  const project = (items || [])[0];
+  if (!project) return;
+
+  const level = project.detailLevel || 'standard';   // brief | standard | deep
+
+  // ── 标题行：项目名 + 短标签 ──
+  const head = el('div', { className: 'project-head' });
+  head.appendChild(el('h3', { text: project.name }));
+  if (!isPlaceholder(project.badge)) {
+    head.appendChild(el('span', { className: 'badge', text: project.badge }));
+  }
+  card.appendChild(head);
+
+  // ── 我的角色（AI 协作如实标注，正面陈述） ──
+  if (!isPlaceholder(project.role)) {
+    card.appendChild(el('p', { className: 'project-role', text: project.role }));
+  }
+
+  // ── 简介（三档都显示） ──
+  if (!isPlaceholder(project.summary)) {
+    card.appendChild(el('p', { className: 'summary', text: project.summary }));
+  }
+
+  // brief 档：到此为止，不再展示规模与技术细节
+  if (level === 'brief') {
+    appendProjectLinks(card, project.links);
+    return;
+  }
+
+  // ── 技术栈标签（standard / deep） ──
+  if (project.stack && project.stack.length) {
+    const stack = el('div', { className: 'stack' });
+    project.stack.forEach(function (tech) {
+      stack.appendChild(el('span', { className: 'tag', text: tech }));
+    });
+    card.appendChild(stack);
+  }
+
+  // ── 亮点数据网格（standard / deep） ──
+  if (project.facts && project.facts.length) {
+    const facts = el('div', { className: 'facts' });
+    project.facts.forEach(function (fact) {
+      const box = el('div', { className: 'fact' });
+      box.appendChild(el('span', { className: 'lbl', text: fact.label }));
+      box.appendChild(el('span', { className: 'val', text: fact.value }));
+      facts.appendChild(box);
+    });
+    card.appendChild(facts);
+  }
+
+  // ── 标准版要点（standard / deep） ──
+  if (project.highlights && project.highlights.length) {
+    const ul = el('ul', { className: 'bullets' });
+    project.highlights.forEach(function (text) {
+      ul.appendChild(el('li', { text: text }));
+    });
+    card.appendChild(ul);
+  }
+
+  // ── 深度版：默认折叠，点「展开详情」显示 ──
+  const hasDeep = level === 'deep' && project.deep && project.deep.tables && project.deep.tables.length;
+  if (hasDeep) {
+    const detail = el('div', { className: 'detail', attrs: { id: 'projectDetail', hidden: 'hidden' } });
+    project.deep.tables.forEach(function (table) {
+      detail.appendChild(el('h4', { text: table.title }));
+      const node = el('table', { className: 'table' });
+      table.rows.forEach(function (pair) {
+        const tr = el('tr');
+        tr.appendChild(el('th', { text: pair[0] }));
+        tr.appendChild(el('td', { text: pair[1] }));
+        node.appendChild(tr);
+      });
+      detail.appendChild(node);
+    });
+    card.appendChild(detail);
+  }
+
+  // ── 行动区：展开详情 / 外链 ──
+  const actions = el('div', { className: 'project-actions' });
+
+  if (hasDeep) {
+    const toggle = el('button', {
+      className: 'btn',
+      text: '展开详情',
+      attrs: { type: 'button', id: 'detailToggle', 'aria-expanded': 'false', 'aria-controls': 'projectDetail' }
+    });
+    actions.appendChild(toggle);
+  }
+
+  // 外链按钮（新窗口打开，带 rel 安全属性）
+  (project.links || []).forEach(function (link) {
+    const isPrimary = String(link.label).indexOf('在线') !== -1;
+    actions.appendChild(el('a', {
+      className: 'btn' + (isPrimary ? ' btn--primary' : ''),
+      text: link.label,
+      attrs: { href: link.url, target: '_blank', rel: 'noopener noreferrer' }
+    }));
+  });
+
+  card.appendChild(actions);
+
+  // ── 绑定「展开详情」按钮 ──
+  if (hasDeep) {
+    const toggle = byId('detailToggle');
+    const detail = byId('projectDetail');
+    if (toggle && detail) {
+      toggle.addEventListener('click', function () {
+        const expanded = detail.hasAttribute('hidden') === false;
+        if (expanded) {
+          detail.setAttribute('hidden', 'hidden');
+          toggle.textContent = '展开详情';
+          toggle.setAttribute('aria-expanded', 'false');
+          card.classList.remove('is-expanded');
+        } else {
+          detail.removeAttribute('hidden');
+          toggle.textContent = '收起详情';
+          toggle.setAttribute('aria-expanded', 'true');
+          card.classList.add('is-expanded');
+        }
+      });
+    }
+  }
+}
+
+/**
+ * 渲染「荣誉资质」板块。
+ * 只有 1 张证书时，用大卡片 + 中性说明收尾，避免显得空。
+ * @param {Array} items - 来自 PROFILE.achievements
+ * @param {string} note - 来自 PROFILE.achievementsNote
+ */
+function renderAchievements(items, note) {
+  const card = byId('achievementCard');
+  if (!card) return;
+  clear(card);
+
+  (items || []).forEach(function (achievement) {
+    const wrap = el('div', { className: 'achievement-card' });
+
+    // 左侧「印章」：取证书名里第一个汉字做符号
+    const seal = el('div', { className: 'achievement-seal' });
+    seal.appendChild(el('span', { text: (achievement.type || achievement.name || '证').slice(0, 1) }));
+    wrap.appendChild(seal);
+
+    // 右侧文字
+    const body = el('div');
+    body.appendChild(el('h3', { text: achievement.name }));
+    const subParts = [achievement.type, achievement.status, achievement.note]
+      .filter(function (p) { return !isPlaceholder(p); });
+    body.appendChild(el('div', { className: 'sub', text: subParts.join(' ｜ ') }));
+    wrap.appendChild(body);
+
+    card.appendChild(wrap);
+  });
+
+  // 补充说明（中性表述，如「持续积累中」）
+  if (!isPlaceholder(note)) {
+    card.appendChild(el('div', { className: 'achievements-note', text: note }));
+  }
+}
+
+/**
+ * 渲染「兴趣偏好」板块
+ * @param {Array} items - 来自 PROFILE.interests
+ */
+function renderInterests(items) {
+  const grid = byId('interestGrid');
+  if (!grid) return;
+  clear(grid);
+
+  (items || []).forEach(function (interest) {
+    const card = el('div', { className: 'card hud-corners interest' });
+    card.appendChild(el('span', { className: 'ico', text: interest.icon }));
+    card.appendChild(el('div', { className: 'n', text: interest.name }));
+    if (!isPlaceholder(interest.desc)) {
+      card.appendChild(el('div', { className: 'd', text: interest.desc }));
+    }
+    grid.appendChild(card);
+  });
+}
+
+/**
+ * 依据 SECTION_CONFIG 生成六大板块的「骨架」：顺序、显隐、标题、锚点 id 全部由配置驱动。
+ * 做法：遍历 SECTION_CONFIG → 跳过 hidden → 建 <section id=cfg.key> →
+ *       写入编号 + 标题 + 各内容容器（slots）。
+ * ⚠️ 必须在所有 render* 函数之前调用 —— 渲染函数要靠这里生成的内容容器 id 找落点。
+ * ⚠️ 隐藏的板块不会生成 DOM，对应的 render* 函数因 byId 取不到容器而自动跳过，安全。
+ */
+function buildSections() {
+  const root = byId('sectionsRoot');
+  if (!root) return;
+  clear(root);
+
+  let visibleIndex = 0;
+  SECTION_CONFIG.forEach(function (cfg) {
+    if (cfg.hidden) return;                        // 隐藏板块：不生成 DOM，导航也同步少一项
+    visibleIndex += 1;
+
+    const section = el('section', {
+      className: 'section',
+      attrs: { 'data-section': cfg.key }           // 只标 data-section；id 下面用 cfg.key 赋值
+    });
+    section.id = cfg.key;                          // ★ 板块锚点 = 配置 key（与导航 href 同源）
+
+    const wrap = el('div', { className: 'wrap' });
+
+    // 板块头：编号（按可见顺序自动 01/02/…）+ 标题 + 装饰线
+    const head = el('div', { className: 'section-head' });
+    head.appendChild(el('span', {
+      className: 'idx mono',
+      text: String(visibleIndex).padStart(2, '0')
+    }));
+    head.appendChild(el('h2', { text: cfg.title }));
+    head.appendChild(el('span', { className: 'line', attrs: { 'aria-hidden': 'true' } }));
+    wrap.appendChild(head);
+
+    // 内容容器（渲染函数的写入落点）
+    (cfg.slots || []).forEach(function (slot) {
+      wrap.appendChild(el('div', { className: slot.cls, attrs: { id: slot.id } }));
+    });
+
+    section.appendChild(wrap);
+    root.appendChild(section);
+  });
+}
+
+/**
+ * 生成顶部导航：直接由 SECTION_CONFIG 驱动（不再反查 DOM）。
+ * 好处：板块顺序 / 显隐与配置天然一致，隐藏板块时导航自动同步。
+ */
+function renderNav() {
+  const nav = byId('nav');
+  if (!nav) return;
+  clear(nav);
+
+  SECTION_CONFIG.forEach(function (cfg) {
+    if (cfg.hidden) return;                        // 隐藏的板块，导航里也不出现
+    nav.appendChild(el('a', {
+      text: cfg.title,
+      attrs: { href: '#' + cfg.key, 'data-target': cfg.key }
+    }));
+  });
+}
+
+/**
+ * 渲染页脚：GitHub / 邮箱 / 电话入口 + 「打印」按钮 + 「最后更新」时间戳。
+ * @param {Object} profile - 整个 PROFILE 对象（取其中的 contact / footer / updatedAt）
+ */
+function renderFooter(profile) {
+  const contact = (profile && profile.contact) || {};
+  const footerConfig = (profile && profile.footer) || {};
+
+  const note = byId('footerNote');
+  if (note) note.textContent = footerConfig.note || '';
+
+  const links = byId('footerLinks');
+  if (!links) return;
+  clear(links);
+
+  // GitHub 入口（未填写则隐藏）
+  if (!isPlaceholder(contact.github)) {
+    links.appendChild(el('a', {
+      text: 'GitHub',
+      attrs: { href: contact.github, target: '_blank', rel: 'noopener noreferrer' }
+    }));
+  }
+  // 邮箱：占位符时自动隐藏，页面不会出现「待填写」字样
+  if (!isPlaceholder(contact.email)) {
+    links.appendChild(el('a', {
+      text: contact.email,
+      attrs: { href: 'mailto:' + contact.email }
+    }));
+  }
+  // 手机号：默认留空 → 自动隐藏。
+  // ★ 安全提示：公开网页的手机号会被爬虫抓取，如无必要请保持留空。
+  if (!isPlaceholder(contact.phone)) {
+    links.appendChild(el('a', {
+      text: contact.phone,
+      attrs: { href: 'tel:' + contact.phone }
+    }));
+  }
+  // 打印 / 导出 PDF 按钮
+  const printBtn = el('button', {
+    className: 'btn',
+    text: '打印 / 导出 PDF',
+    attrs: { type: 'button', id: 'printBtn' }
+  });
+  links.appendChild(printBtn);
+
+  // ── 「最后更新」时间戳（V15）──
+  // 值取自 PROFILE.updatedAt（格式 'YYYY-MM'）。留空 / 未填时**整行不渲染**，
+  // 页面绝不出现 undefined 字样（沿用 isPlaceholder 判定）。
+  if (!isPlaceholder(profile && profile.updatedAt)) {
+    links.appendChild(el('span', {
+      className: 'sync mono',
+      text: '最后更新：' + String(profile.updatedAt).trim(),
+      attrs: { id: 'footerSync' }
+    }));
+  }
+}
+
+
+/* ============================================================================
+ *  PART 5 · 主题服务
+ *  ──────────────────────────────────────────────────────────────────────────
+ *  ⚠️ 属于逻辑层，通常不需要改。
+ * ============================================================================ */
+
+/**
+ * 应用主题：这是**唯一**修改主题的入口。
+ * 做法：给 <html> 设置 data-theme 属性，CSS 里的 [data-theme="..."] 块随即生效。
+ * @param {string} key - 主题 key，如 'cyber-neon'
+ */
+function applyTheme(key) {
+  const safeKey = THEMES[key] ? key : DEFAULT_THEME;     // 传入非法 key 时回到默认主题
+  document.documentElement.setAttribute('data-theme', safeKey);
+  currentTheme = safeKey;
+
+  // 同步更新切换按钮上的文字与选项的高亮状态
+  const label = byId('themeToggleLabel');
+  if (label && THEMES[safeKey]) label.textContent = THEMES[safeKey].label;
+
+  const options = document.querySelectorAll('.theme-option');
+  options.forEach(function (btn) {
+    const isCurrent = btn.getAttribute('data-theme-key') === safeKey;
+    btn.setAttribute('aria-pressed', isCurrent ? 'true' : 'false');
+  });
+}
+
+/** 当前主题 key（由 applyTheme 维护） */
+let currentTheme = DEFAULT_THEME;
+
+/**
+ * 读取 localStorage 里保存的主题（读取失败时返回默认主题）。
+ * 说明：用 try/catch 包住，因为某些浏览器在本地文件模式下可能禁用 localStorage。
+ * @returns {string} 主题 key
+ */
+function readStoredTheme() {
+  try {
+    const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (saved && THEMES[saved]) return saved;
+  } catch (err) {
+    // 读取失败不影响功能，静默回退到默认主题
+  }
+  return DEFAULT_THEME;
+}
+
+/**
+ * 把主题写入 localStorage（失败不影响页面）。
+ * @param {string} key
+ */
+function persistTheme(key) {
+  try {
+    window.localStorage.setItem(THEME_STORAGE_KEY, key);
+  } catch (err) {
+    // 写入失败（如隐私模式）不影响本次切换，仅下次打开不能记住
+  }
+}
+
+/**
+ * 初始化主题：优先用上次记住的，否则用 DEFAULT_THEME。
+ * 在 init() 中最先调用，避免首屏配色跳变。
+ */
+function initTheme() {
+  applyTheme(readStoredTheme());
+}
+
+/**
+ * 生成主题按钮（依据 THEMES 自动生成）并绑定点击事件。
+ * ★ 加第五套主题时，这里不用改任何代码 —— 按钮会自动多一个。
+ */
+function bindThemeSwitcher() {
+  const switcher = byId('themeSwitcher');
+  const toggleBtn = byId('themeToggle');
+  const menu = byId('themeMenu');
+  if (!switcher || !toggleBtn || !menu) return;
+
+  // 1) 依据 THEMES 生成四个（或更多）选项按钮
+  clear(menu);
+  Object.keys(THEMES).forEach(function (key) {
+    const theme = THEMES[key];
+    const option = el('button', {
+      className: 'theme-option',
+      attrs: {
+        type: 'button',
+        'data-theme-key': key,
+        'aria-pressed': 'false',
+        'aria-label': '切换到 ' + theme.label + ' 主题'
+      }
+    });
+    option.appendChild(el('span', {
+      className: 'swatch',
+      attrs: { style: 'background:' + theme.swatch, 'aria-hidden': 'true' }
+    }));
+    const meta = el('span', { className: 'meta' });
+    meta.appendChild(el('span', { text: theme.label }));
+    meta.appendChild(el('small', { text: theme.desc }));
+    option.appendChild(meta);
+
+    // 点击某个主题 → 应用 + 持久化 + 收起面板
+    option.addEventListener('click', function () {
+      applyTheme(key);
+      persistTheme(key);
+      closeMenu();
+    });
+
+    menu.appendChild(option);
+  });
+
+  // 2) 点击主按钮：展开 / 收起面板
+  function openMenu() {
+    switcher.classList.add('is-open');
+    toggleBtn.setAttribute('aria-expanded', 'true');
+  }
+  function closeMenu() {
+    switcher.classList.remove('is-open');
+    toggleBtn.setAttribute('aria-expanded', 'false');
+  }
+  toggleBtn.addEventListener('click', function (event) {
+    event.stopPropagation();
+    if (switcher.classList.contains('is-open')) closeMenu(); else openMenu();
+  });
+
+  // 3) 点击页面其他位置 / 按 Esc：收起面板
+  document.addEventListener('click', function (event) {
+    if (!switcher.contains(event.target)) closeMenu();
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') closeMenu();
+  });
+
+  // 4) 同步一次当前高亮状态
+  applyTheme(currentTheme);
+}
+
+
+/* ============================================================================
+ *  PART 6 · 交互增强（可降级：即使这些功能失效，页面依然完整可用）
+ * ============================================================================ */
+
+/**
+ * 判断用户是否开启了「减少动态效果」。
+ * @returns {boolean}
+ */
+function respectsReducedMotion() {
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/**
+ * 滚动高亮：滚动到哪个板块，顶部导航对应项就亮起来。
+ * 【可降级】不支持 IntersectionObserver 的浏览器会自动跳过，不影响使用。
+ */
+function initScrollSpy() {
+  if (!('IntersectionObserver' in window)) return;
+
+  const links = document.querySelectorAll('.nav a[data-target]');
+  if (!links.length) return;
+
+  const sections = [];
+  links.forEach(function (link) {
+    const target = document.getElementById(link.getAttribute('data-target'));
+    if (target) sections.push({ id: target.id, link: link, node: target });
+  });
+  if (!sections.length) return;
+
+  const observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      sections.forEach(function (item) {
+        item.link.classList.toggle('is-active', item.id === entry.target.id);
+      });
+    });
+  }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+
+  sections.forEach(function (item) { observer.observe(item.node); });
+}
+
+/**
+ * 入场淡入：元素滚动进入视口时淡入。
+ * 【可降级】开启「减少动态效果」时直接跳过，元素保持正常显示。
+ */
+function initReveal() {
+  if (respectsReducedMotion()) return;                 // 尊重系统设置：不动画
+  if (!('IntersectionObserver' in window)) return;
+
+  const targets = document.querySelectorAll('.card, .section-head, .meters, .kv, .interest');
+  if (!targets.length) return;
+
+  targets.forEach(function (node) { node.classList.add('reveal'); });
+
+  const observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);              // 只淡入一次
+      }
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+
+  targets.forEach(function (node) { observer.observe(node); });
+}
+
+/**
+ * 绑定「打印 / 导出 PDF」按钮。
+ * 说明：用浏览器原生打印（在弹窗里选择「另存为 PDF」即可）。
+ */
+function bindPrintButton() {
+  const btn = byId('printBtn');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    window.print();
+  });
+}
+
+
+/* ============================================================================
+ *  PART 7 · 总入口
+ * ============================================================================ */
+
+/**
+ * 页面总入口：先应用主题（避免首屏配色跳变），再渲染内容，最后绑定交互。
+ * ⚠️ 一般不需要改这个函数。
+ */
+function init() {
+  // 1) 主题优先 —— 先定配色，再上内容，避免闪一下白底
+  initTheme();
+
+  // 2) 按 SECTION_CONFIG 生成板块骨架（顺序 / 显隐 / 锚点 id 全部由配置决定）
+  //    ⚠️ 必须排在所有 render* 之前：它们要靠这里生成的容器 id 找落点。
+  buildSections();
+
+  // 3) 内容渲染（全部数据来自 PROFILE，页面里没有任何硬编码的个人信息）
+  renderNav();
+  renderProfile(PROFILE.identity, PROFILE.contact, PROFILE.meters);
+  renderEducation(PROFILE.education);
+  renderSkills(PROFILE.skills, PROFILE.languages);
+  renderProjects(PROFILE.projects);
+  renderAchievements(PROFILE.achievements, PROFILE.achievementsNote);
+  renderInterests(PROFILE.interests);
+  renderFooter(PROFILE);
+
+  // 4) 交互增强（可降级）
+  bindThemeSwitcher();
+  initScrollSpy();
+  initReveal();
+  bindPrintButton();
+}
+
+// DOM 解析完成后启动
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
