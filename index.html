@@ -35,20 +35,20 @@
   ★ 为什么必须有：微信 / QQ / 朋友圈是本站的主要分发路径，而它们的抓取程序
     **不执行 JavaScript**。若没有下面这几行静态标签，分享出去的链接就是一条
     「光秃秃的链接」（无标题、无描述、无缩略图），点击率会明显偏低。
-  ★ 这三行的值需要与 PROFILE.identity 保持一致（改名字 / 改学校时记得同步）。
-  ★ og:url 部署上线后补：填 GitHub Pages 的最终地址（形如 https://<用户名>.github.io/<仓库名>/）。
-  ★ og:image 已内置一张 1200×630 的主题色占位图（内联 SVG，零请求、不产生 404）；
-     部署后可替换为真实预览图（见下方注释）。
+  ★ 这几行的值需要与 PROFILE.identity 保持一致（改名字 / 改学校时记得同步）。
+  ★ og:image 指向仓库根目录的真实预览图 preview.png（1200×630）。
+     显式声明 width/height，微信 / QQ 抓取时能更快确定比例、少一次探测。
 -->
 <meta property="og:type" content="profile">
 <meta property="og:title" content="付加旺 · 个人主页">
 <meta property="og:description" content="江苏大学梦溪学院（拔尖创新人才培养荣誉学院）· 金山英才班 · 电气工程及其自动化 2026 级">
 <meta property="og:url" content="https://fjw66666666.github.io/resume/">
-<!-- og:image：内置一张 1200×630 的主题色占位图（内联 SVG，零外部请求、不产生 404）。
-     部署后如需换成真实预览图：用下面注释里的示例替换掉本行即可。 -->
 <meta property="og:image" content="https://fjw66666666.github.io/resume/preview.png">
-<!-- 部署后替换为真实预览图（1200×630），例如：
-<meta property="og:image" content="https://<用户名>.github.io/<仓库名>/preview.png"> -->
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="付加旺 · 江苏大学梦溪学院 金山英才班 · 电气工程及其自动化 2026 级">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
 
 <!--
   ── 站点图标（favicon）──────────────────────────────────────────────────
@@ -56,6 +56,59 @@
     会自动请求 /favicon.ico，在控制台报一条 404。图形为主题强调色方块，呼应科幻风。
 -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2305080f'/%3E%3Crect x='9' y='9' width='14' height='14' rx='3' fill='%234da3ff'/%3E%3C/svg%3E">
+
+<!--
+  ── 无 JS 兜底样式（P0-4）──────────────────────────────────────────────
+  <noscript> 里的内容在「脚本可用」时不会被渲染，因此下面这段只在
+  禁用 JS / JS 加载失败时生效 —— 顶部栏需要 JS 生成，此时是空条，隐藏掉。
+-->
+<noscript>
+  <style>
+    .topbar { display: none !important; }
+    .hero { padding-top: var(--space-5) !important; }
+  </style>
+</noscript>
+
+<!--
+  ── 结构化数据（JSON-LD，P2-14）────────────────────────────────────────
+  ★ 作用：让搜索引擎、AI 搜索、招聘方爬虫在「不执行 JS」的情况下也能
+    明确知道「这个人是谁、会什么、在哪读书」。这是纯静态 JSON，不影响渲染。
+  ★ 与 PROFILE 保持一致：改名字 / 学校 / 技能时记得同步这里。
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "付加旺",
+  "alternateName": "FU JIAWANG",
+  "gender": "Male",
+  "url": "https://fjw66666666.github.io/resume/",
+  "alumniOf": {
+    "@type": "CollegeOrUniversity",
+    "name": "江苏大学",
+    "department": "梦溪学院（拔尖创新人才培养荣誉学院）"
+  },
+  "knowsAbout": [
+    "TypeScript",
+    "React",
+    "Vite",
+    "Tailwind CSS",
+    "渐进式 Web 应用（PWA）",
+    "间隔重复算法（SM-2）",
+    "前端工程化",
+    "AI 应用与提示词工程"
+  ],
+  "hasCredential": {
+    "@type": "EducationalOccupationalCredential",
+    "name": "阿里巴巴 AI 初级训练师",
+    "credentialCategory": "资格证"
+  },
+  "sameAs": [
+    "https://github.com/fjw66666666",
+    "https://fjw66666666.github.io/cetyi-cet-vocab/"
+  ]
+}
+</script>
 
 <!--
   ── 字体：锦上添花，非必需 ──────────────────────────────────────────────
@@ -379,10 +432,10 @@ ul { margin: 0; padding: 0; list-style: none; }
   white-space: nowrap;
   transition: color .25s ease, background-color .25s ease;
 }
-.nav a:hover { color: var(--text); text-decoration: none; }
-/* 悬停停留期间：淡强调色预览，提示「即将自动跳转」（比 is-active 更轻） */
-.nav a.is-armed {
+.nav a:hover {
   color: var(--text);
+  text-decoration: none;
+  /* 悬停预览：淡强调色底，比 is-active 更轻，仅作视觉提示，不触发跳转 */
   background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 /* 当前所在板块高亮 */
@@ -1114,13 +1167,25 @@ img { max-width: 100%; height: auto; display: block; }
    ⑩  打印 / 导出 PDF 样式
    ============================================================================ */
 @media print {
-  .bg-decor, .topbar, .actions, .project-actions, .footer-links { display: none !important; }
+  /* ★ 注意：.footer-links 不能在这里隐藏 —— 它是邮箱 / GitHub 的落点，
+     打印出来的纸必须能被 HR 联系到（P0-3）。 */
+  .bg-decor, .topbar, .actions, .project-actions { display: none !important; }
   body { background: #fff; color: #111; font-size: 12px; }
   .card, .kv, .facts, .fact, .lang { background: #fff !important; border-color: #ccc !important; box-shadow: none !important; }
   .section { padding: 14px 0; break-inside: avoid; }
   .detail { display: block !important; }       /* 打印时展开全部详情 */
   .meter .num, .fact .val, .timeline-item .when { color: #0a4a8a !important; text-shadow: none !important; }
   a { color: #0a4a8a; }
+  /* 联系方式：打印时左对齐、排在页脚最前面，避免被 ATS / 人工漏读 */
+  .footer-links {
+    display: block !important;
+    text-align: left !important;
+    margin-top: 10px;
+  }
+  .footer-links a { display: inline-block; margin-right: 16px; }
+  /* 页脚是 flex 容器：打印时把联系方式提到最前，说明文字排到其后 */
+  .footer-inner .footer-links { order: -1; }
+  .footer-inner .note { order: 1; }
 }
 
 /* ============================================================================
@@ -1143,6 +1208,74 @@ img { max-width: 100%; height: auto; display: block; }
 <body>
 <!-- 装饰层：背景网格 / 扫描线（aria-hidden 表示对读屏软件隐藏） -->
 <div class="bg-decor" aria-hidden="true"></div>
+
+<!--
+  ══ 无 JS 兜底摘要（P0-4）═══════════════════════════════════════════════
+  ★ 为什么必须有：本站正文全部由 JavaScript 渲染。禁用 JS、JS 报错、或被
+    ATS / 爬虫只读取源码时，页面就是一张白纸。这个 <noscript> 块用纯 HTML
+    把关键信息讲清楚 —— 脚本可用时它完全不渲染，不影响任何视觉。
+  ★ 与 PROFILE 内容保持一致：改名字 / 学校 / 项目时记得同步这里。
+-->
+<noscript>
+  <div class="page">
+    <main>
+      <section class="section">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>付加旺 · 个人信息（无脚本摘要）</h2>
+          </div>
+
+          <div class="card">
+            <h3>基本信息</h3>
+            <p>付加旺（FU JIAWANG），男，江苏 · 镇江。</p>
+            <p>江苏大学梦溪学院 · 电气工程及其自动化 · 2026 级本科在读。</p>
+            <ul>
+              <li>学校：江苏大学</li>
+              <li>学院：梦溪学院（拔尖创新人才培养荣誉学院）</li>
+              <li>班型：金山英才班（全校理工科新生中选拔）</li>
+              <li>专业：电气工程及其自动化</li>
+              <li>学历：本科（在读），2026 — 2030</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>项目作品 · 词忆 CET（四六级词汇记忆 PWA）</h3>
+            <p>独立完成产品设计、技术选型与数据流水线搭建，已上线。</p>
+            <ul>
+              <li>技术栈：React 19、TypeScript 5.9、Vite 7、Tailwind CSS 3、Radix UI、react-router 7、PWA</li>
+              <li>核心算法：独立实现的改进版 SM-2 间隔重复调度引擎（纯函数）</li>
+              <li>词库规模：CET-4 4,545 词 + CET-6 3,998 词，合计 8,543 词</li>
+              <li>工程化：13 个 Python/TS 自动化脚本 + 2 条 GitHub Actions 流水线</li>
+              <li>在线体验：https://fjw66666666.github.io/cetyi-cet-vocab/</li>
+              <li>源码仓库：https://github.com/fjw66666666/cetyi-cet-vocab</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>技能</h3>
+            <ul>
+              <li>编程与工具：TypeScript / React 19、Vite 7 / Tailwind CSS 3、Radix UI / Recharts / react-router 7、Python、PWA / Service Worker / localStorage</li>
+              <li>算法与工程：间隔重复调度（SM-2 改进版）、自动化脚本与 CI</li>
+              <li>AI 方向：AI 应用与提示词工程、AI 协作交付方法论</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>荣誉资质</h3>
+            <p>阿里巴巴 AI 初级训练师（已获得）· 方向：AI 应用基础与提示词工程</p>
+          </div>
+
+          <div class="card">
+            <h3>联系方式</h3>
+            <p>GitHub：https://github.com/fjw66666666</p>
+          </div>
+
+          <p class="note">本页正文由 JavaScript 渲染；你看到这段文字是因为浏览器未执行脚本。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</noscript>
 
 <div class="page">
 
@@ -1191,8 +1324,12 @@ img { max-width: 100%; height: auto; display: block; }
           <!-- 头像：由 renderProfile() 写入（有照片渲染 <img>，无照片渲染首字） -->
           <div class="avatar" id="avatar" aria-hidden="true"></div>
           <div>
-            <h1 id="heroName"></h1>
-            <p class="pinyin" id="heroPinyin"></p>
+            <!-- ★ 静态兜底（P0-4 / P2-15）：姓名直接写死在 HTML 里，
+                 JS 加载后用 textContent 覆盖（同名时视觉零变化）。
+                 好处：无 JS、JS 报错、或被 ATS / 爬虫 / 读屏软件直接读源码时，
+                 都能拿到姓名，不再是一个空 <h1>。 -->
+            <h1 id="heroName">付加旺</h1>
+            <p class="pinyin" id="heroPinyin">FU JIAWANG</p>
             <p class="tagline" id="heroTagline"></p>
             <div class="meta-row" id="heroMeta"></div>
             <!-- 数字仪表盘（HUD 风格） -->
@@ -1281,6 +1418,20 @@ const PROFILE = {
     email: '${待填写}',                                         // 改这里 → 页脚出现邮箱（留占位符则自动隐藏）
     github: 'https://github.com/fjw66666666',                   // 改这里 → Hero 与页脚的 GitHub 入口链接
     phone: ''                                                   // ⚠️ 如需公开请自行填写；公开网页的手机号可能被爬虫抓取，建议谨慎
+  },
+
+  /* ── 简历 PDF（投递用）─────────────────────────────────────────────
+     ★ 为什么要有：个人主页 ≠ 投递简历。企业网申系统（Workday / 北森 /
+       Moka / 智联等）只认单列、无图、纯文本的 PDF，主页这份科幻风作品集
+       在 ATS 眼里是解析不了的。所以另做了一份 ATS 友好版：
+         源文件 resume.html  →  打印导出 resume.pdf
+     ★ file 是「URL 里的路径」（用 ASCII 文件名，避免中文 URL 在各处的编码差异）；
+       downloadName 是「对方保存到本地时的文件名」—— 这个名字 HR 和 ATS 都会看到，
+       所以带上姓名 / 学校 / 岗位，别用 resume-final-v3.pdf 这种名字。
+     ★ 换岗位投递时：改 downloadName 里的岗位名 + 重新导出 PDF 即可。 */
+  resume: {
+    file: 'resume.pdf',
+    downloadName: '付加旺-江苏大学-简历.pdf'
   },
 
   /* ── 教育背景：按时间倒序排列（最新的放最前面） ── */
@@ -1606,8 +1757,9 @@ function byId(id) {
  * @param {Object} identity - 来自 PROFILE.identity
  * @param {Object} contact  - 来自 PROFILE.contact
  * @param {Array}  meters   - 来自 PROFILE.meters（数字仪表盘）
+ * @param {Object} resume   - 来自 PROFILE.resume（投递用 PDF 的路径与下载文件名）
  */
-function renderProfile(identity, contact, meters) {
+function renderProfile(identity, contact, meters, resume) {
   // 1) 浏览器标签页标题（跟随姓名变化）
   document.title = identity.name + ' · 个人主页';
 
@@ -1671,12 +1823,27 @@ function renderProfile(identity, contact, meters) {
     });
   }
 
-  // 7) Hero 主行动按钮：查看作品 + GitHub 入口（醒目入口之一）
+  // 7) Hero 主行动按钮：下载简历 + 查看作品 + GitHub 入口
   const heroActions = byId('heroActions');
   if (heroActions) {
     clear(heroActions);
+    // ★ P1-12：把「下载 PDF 简历」放在第一位并做成主按钮。
+    //   理由：HR / 网申系统要的是一份能被机器解析的文件，而不是一个网页。
+    //   在主页上它是「HR 最该点的那一个」，所以给主色。
+    const resumeCfg = resume || {};
+    if (!isPlaceholder(resumeCfg.file)) {
+      heroActions.appendChild(el('a', {
+        className: 'btn btn--primary',
+        text: '下载 PDF 简历',
+        attrs: {
+          href: resumeCfg.file,
+          download: resumeCfg.downloadName || '',
+          'aria-label': '下载 PDF 版简历（' + (resumeCfg.downloadName || '') + '）'
+        }
+      }));
+    }
     heroActions.appendChild(el('a', {
-      className: 'btn btn--primary',
+      className: 'btn',
       text: '查看项目作品',
       attrs: { href: '#projects' }
     }));
@@ -2128,10 +2295,23 @@ function renderFooter(profile) {
       attrs: { href: 'tel:' + contact.phone }
     }));
   }
-  // 打印 / 导出 PDF 按钮
+  // 简历 PDF 下载（与 Hero 的主按钮指向同一份文件，页脚再给一个入口）
+  const resumeCfg = (profile && profile.resume) || {};
+  if (!isPlaceholder(resumeCfg.file)) {
+    links.appendChild(el('a', {
+      text: '下载 PDF 简历',
+      attrs: {
+        href: resumeCfg.file,
+        download: resumeCfg.downloadName || ''
+      }
+    }));
+  }
+  // 打印按钮：★ 明确区分于上方「下载 PDF 简历」——
+  //   这一份打印的是「本页」（科幻风视觉版，多列 + 图形，ATS 无法解析），
+  //   投递请用上方的 ATS 友好版 PDF。
   const printBtn = el('button', {
     className: 'btn',
-    text: '打印 / 导出 PDF',
+    text: '打印本页（视觉版）',
     attrs: { type: 'button', id: 'printBtn' }
   });
   links.appendChild(printBtn);
@@ -2316,59 +2496,16 @@ function initScrollSpy() {
     entries.forEach(function (entry) {
       if (!entry.isIntersecting) return;
       sections.forEach(function (item) {
-        item.link.classList.toggle('is-active', item.id === entry.target.id);
+        const active = item.id === entry.target.id;
+        item.link.classList.toggle('is-active', active);
+        // 无障碍（P2-19）：让读屏软件也知道「当前在哪个板块」
+        if (active) item.link.setAttribute('aria-current', 'true');
+        else item.link.removeAttribute('aria-current');
       });
     });
   }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
 
   sections.forEach(function (item) { observer.observe(item.node); });
-}
-
-/**
- * 悬停导航：鼠标划过导航项并停留片刻，即自动滚动到对应板块（无需点击）。
- * 设计要点：
- *   · 停留 180ms 才触发 —— 鼠标从导航横扫到右侧主题按钮时不会误跳。
- *   · 用 scrollIntoView 而非改 location.hash —— 不污染浏览器后退历史。
- *   · 同一项在鼠标移开前只触发一次 —— 避免来回抖动。
- *   · 点击 / 键盘 / 触屏的原有行为完全不受影响（未拦截任何事件）。
- * 【可降级】开启「减少动态效果」时为瞬时跳转；旧浏览器无 matchMedia 时按平滑处理。
- */
-function initHoverNav() {
-  const links = document.querySelectorAll('.nav a[data-target]');
-  if (!links.length) return;
-
-  const DWELL_MS = 180;                    // 需要停留多久才触发
-  const instant = respectsReducedMotion(); // 减少动态效果 → 瞬时跳转
-  let timer = null;
-
-  function cancel() {
-    if (timer) { clearTimeout(timer); timer = null; }
-  }
-
-  links.forEach(function (link) {
-    let fired = false;                     // 本次悬停是否已触发过
-
-    link.addEventListener('mouseenter', function () {
-      if (fired) return;
-      cancel();
-      link.classList.add('is-armed');      // 视觉反馈：即将跳转
-      timer = setTimeout(function () {
-        timer = null;
-        fired = true;
-        link.classList.remove('is-armed');
-        const target = document.getElementById(link.getAttribute('data-target'));
-        if (target) {
-          target.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' });
-        }
-      }, DWELL_MS);
-    });
-
-    link.addEventListener('mouseleave', function () {
-      cancel();
-      fired = false;                       // 移开后重新武装，可再次触发
-      link.classList.remove('is-armed');
-    });
-  });
 }
 
 /**
@@ -2427,7 +2564,7 @@ function init() {
 
   // 3) 内容渲染（全部数据来自 PROFILE，页面里没有任何硬编码的个人信息）
   renderNav();
-  renderProfile(PROFILE.identity, PROFILE.contact, PROFILE.meters);
+  renderProfile(PROFILE.identity, PROFILE.contact, PROFILE.meters, PROFILE.resume);
   renderEducation(PROFILE.education);
   renderSkills(PROFILE.skills, PROFILE.languages);
   renderProjects(PROFILE.projects);
@@ -2438,7 +2575,6 @@ function init() {
   // 4) 交互增强（可降级）
   bindThemeSwitcher();
   initScrollSpy();
-  initHoverNav();
   initReveal();
   bindPrintButton();
 }
