@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+   ATS 友好版简历（打印用源文件）
+  ============================================================================
+   这份文件不是给"看"的，是给"读"的 —— 机器读、系统读、HR 扫读。
+
+   为什么单独做一份，而不直接用那套科幻风主页？
+     企业网申系统（Workday / 北森 / Moka / 智联等）在解析简历时会：
+       · 单列阅读 —— 多列布局会把内容搅拌成乱码
+       · 跳过页眉页脚 —— 联系方式放页眉 = 直接丢失
+       · 跳过图片、图标、图形化技能条 —— "React 85%" 这种进度条 = 0 信息
+     科幻风主页是作品集名片（加分链接），这份才是投递用的正式简历。
+
+   怎么用：
+     1. 浏览器打开本文件 → Ctrl+P → 目标选"另存为 PDF"
+        纸张 A4 / 边距"默认" / 勾选"背景图形"（不必勾，本页无背景色）
+     2. 或直接下载仓库根目录已生成好的 PDF（index.html 上有下载按钮）
+
+   30 秒自检（改完内容务必做一次）：
+     Ctrl+A 全选 → Ctrl+C → 粘贴到记事本，看读出来的顺序是否连贯。
+     不连贯 → ATS 也会读出乱码，回去改排版。
+
+   ★ 需要与 index.html 的 PROFILE 保持一致：改姓名 / 学校 / 项目时两边都要改。
+  ============================================================================
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>付加旺 · 简历 · 江苏大学</title>
+<meta name="description" content="付加旺的 ATS 友好版简历：江苏大学梦溪学院 · 电气工程及其自动化 2026 级，前端与 AI 应用方向。">
+<meta name="robots" content="index,follow">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ffffff'/%3E%3Crect x='9' y='9' width='14' height='14' rx='3' fill='%231a2b45'/%3E%3C/svg%3E">
+<style>
+/* ============================================================================
+   排版说明（重要）
+   ──────────────────────────────────────────────────────────────────────────
+   · 单列、纯文本、零图片、零图标 —— 这是 ATS 可读性的硬要求，不是偷懒。
+   · 字体只用系统自带的通用字族，不引入任何外部字体：
+     外部字体会让文件在别的机器上走样，且对纸面美观没有实际收益。
+   · 「设计感」由字号层级、字重、留白和那几条细横线承担，不用颜色和图形。
+   · 唯一的等宽字体用于姓名拼音与技能关键词 —— 呼应主页的工程气质，
+     同时等宽字体在所有系统上都有安全兜底，不会掉字。
+   ============================================================================ */
+:root {
+  --ink:      #11161d;   /* 正文近黑，不用纯黑，打印更柔和 */
+  --ink-soft: #46505e;   /* 次要信息 */
+  --rule:     #c9d1dc;   /* 细横线 */
+  --rule-strong: #7d8899;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+               "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC",
+               "Noto Sans CJK SC", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo,
+               "Courier New", monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: #eef1f5;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 10pt;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 纸张容器：屏幕上居中显示为一张 A4 纸 */
+.sheet {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 10mm auto;
+  padding: 15mm 17mm;
+  background: #fff;
+  box-shadow: 0 2px 16px rgba(20, 30, 45, .14);
+}
+
+/* ── 抬头：姓名 + 拼音 + 联系方式 ───────────────────────────────────── */
+.masthead { border-bottom: 2px solid var(--ink); padding-bottom: 7px; }
+
+.masthead h1 {
+  margin: 0;
+  font-size: 25pt;
+  font-weight: 700;
+  letter-spacing: .06em;
+  line-height: 1.15;
+}
+
+.masthead .latin {
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-size: 9pt;
+  font-weight: 400;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
+/* 联系方式：一行平铺，冒号统一，读屏与 ATS 都能按顺序取到 */
+.contact {
+  margin: 7px 0 0;
+  font-size: 9.5pt;
+  color: var(--ink-soft);
+}
+.contact span { white-space: nowrap; }
+.contact span + span::before { content: "　·　"; color: var(--rule-strong); }
+.contact a { color: var(--ink); text-decoration: none; }
+
+/* ── 板块标题：靠字重 + 细线建立层级，不用字距 ──────────────────────
+   ⚠️ 有意不加 letter-spacing：实测给标题加字距后，PDF 文本抽取会得到
+      「教 育 背 景」这种被空格打断的结果，ATS 匹配段落标题时会失败。
+      视觉层级改由字重加粗 + 下方细横线承担，效果等效且不牺牲可读性。 */
+h2 {
+  margin: 13px 0 6px;
+  font-size: 10.5pt;
+  font-weight: 700;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--rule);
+}
+
+h3 {
+  margin: 0;
+  font-size: 11pt;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+
+/* 条目标题行：左边标题，右边时间，两端对齐 */
+.entry-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.entry-head .when {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 8.5pt;
+  color: var(--ink-soft);
+  letter-spacing: .04em;
+}
+
+.subtitle {
+  margin: 1px 0 0;
+  font-size: 9.5pt;
+  color: var(--ink-soft);
+}
+.subtitle strong { color: var(--ink); font-weight: 600; }
+
+/* ── 列表：用最朴素的圆点，缩进固定，复制出来不会丢层级 ───────────── */
+ul { margin: 4px 0 0; padding-left: 1.15em; }
+li { margin: 2px 0; }
+li::marker { color: var(--rule-strong); }
+
+/* 技能关键词：等宽，方便人眼扫，也保证字符不被错误合并 */
+.k { font-family: var(--font-mono); font-size: 9.5pt; }
+
+/* 技能行：左侧固定标签宽度，形成整齐的两栏阅读节奏（仍是单列结构） */
+.skill-row { display: flex; gap: 10px; margin: 3px 0; }
+.skill-row > dt {
+  flex: none;
+  width: 5.6em;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+.skill-row > dd { margin: 0; }
+dl { margin: 4px 0 0; }
+
+/* 链接：打印时保留为可见文本，方便 ATS 与人工双读 */
+a { color: var(--ink); }
+
+/* 结尾小字 */
+.foot {
+  margin-top: 12px;
+  padding-top: 6px;
+  border-top: 1px solid var(--rule);
+  font-size: 8.5pt;
+  color: var(--ink-soft);
+}
+
+/* ============================================================================
+   打印：铺满 A4，去掉阴影与屏幕留白
+   ============================================================================ */
+@page { size: A4; margin: 14mm 16mm; }
+
+@media print {
+  body { background: #fff; font-size: 9.8pt; }
+  .sheet {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+  /* 保证板块标题不与上一块内容被拆到两页 */
+  h2, h3, .entry-head { break-after: avoid; }
+  li, .skill-row { break-inside: avoid; }
+}
+
+/* 窄屏：纸张改为自适应宽度，方便手机上查看 */
+@media screen and (max-width: 700px) {
+  .sheet { width: auto; margin: 0; padding: 16px; box-shadow: none; min-height: 0; }
+  .contact span { white-space: normal; }
+  .contact span + span::before { content: " · "; }
+  .skill-row { display: block; }
+  .skill-row > dt { width: auto; }
+}
+</style>
+</head>
+
+<body>
+<main class="sheet">
+
+  <!-- ══ 抬头 ══════════════════════════════════════════════════════════ -->
+  <header class="masthead">
+    <h1>付加旺</h1>
+    <p class="latin">Fu Jiawang</p>
+    <p class="contact">
+      <span>GitHub：<a href="https://github.com/fjw66666666">github.com/fjw66666666</a></span>
+      <!--
+        ★★★ 待补：邮箱（P0-1）★★★
+        拿到邮箱后，在下面这行填入，并删掉本注释块的说明行：
+          <span>邮箱：your@163.com</span>
+        说明：主页 index.html 出于防爬虫考虑只放邮箱不放手机号，
+              手机号建议只写在这份投递用的 PDF 里 —— 需要时同样在这里加一行：
+          <span>电话：138xxxxxxxx</span>
+      -->
+      <span>江苏 · 镇江</span>
+    </p>
+  </header>
+
+  <!--
+    ★★★ 待补：求职意向（P0-2）★★★
+    拿到求职意向后，解开下面这段注释并填入真实信息，然后重新导出 PDF：
+
+    <section>
+      <h2>求职意向</h2>
+      <dl>
+        <div class="skill-row"><dt>目标岗位</dt><dd>前端开发 / AI 应用开发 实习生</dd></div>
+        <div class="skill-row"><dt>可实习时间</dt><dd>2027 年 7—8 月（暑期）</dd></div>
+        <div class="skill-row"><dt>意向城市</dt><dd>南京 · 苏州 · 上海 · 杭州</dd></div>
+      </dl>
+    </section>
+  -->
+
+  <!-- ══ 教育背景（含荣誉，按报告 P1-5 合并） ═══════════════════════ -->
+  <section>
+    <h2>教育背景</h2>
+    <div class="entry-head">
+      <h3>江苏大学 · 梦溪学院</h3>
+      <span class="when">2026 — 2030</span>
+    </div>
+    <p class="subtitle">
+      <strong>金山英才班</strong>（全校理工科新生中选拔）　|　电气工程及其自动化　|　本科在读
+    </p>
+    <ul>
+      <li>梦溪学院为江苏大学<strong>拔尖创新人才培养荣誉学院</strong>。</li>
+      <li>荣誉：阿里巴巴 AI 初级训练师（已获得）— 方向：AI 应用基础与提示词工程。</li>
+      <!--
+        ★ 可选补充（有真实数据才写，没有就保持删除状态）：
+          专业排名：若在前 20% 才写，写成「专业排名：前 15%」
+          核心课程：挑 3—5 门与目标岗位相关的，例如
+            <li>核心课程：高等数学 / 电路 / 模拟电子技术 / 程序设计</li>
+        ★ 有意不写高考分数 —— 分数对不同省份读者的含金量差异大，
+          且对校招简历没有增量信息，招来追问的成本大于收益。
+      -->
+    </ul>
+  </section>
+
+  <!-- ══ 项目作品 ═══════════════════════════════════════════════════ -->
+  <section>
+    <h2>项目作品</h2>
+    <div class="entry-head">
+      <h3>词忆 CET · 四六级词汇记忆 PWA</h3>
+      <span class="when">4 天 0 → 上线</span>
+    </div>
+    <p class="subtitle">
+      独立完成产品设计、技术选型与数据流水线搭建　|　<span class="k">React 19 · TypeScript 5.9 · Vite 7 · Tailwind CSS 3 · PWA</span>
+    </p>
+    <ul>
+      <li><strong>算法</strong>：独立实现改进版 SM-2 间隔重复调度引擎（纯函数），按「认识 / 模糊 / 忘记」三档自评走不同间隔与难度因子分支，间隔阶梯 10 分钟 → 1 天 → 3 天 → 7 天 → 15 天 → 30 天；内置防复习雪崩节流（到期复习量 &gt; 每日新词量 × 3 时自动暂停推送新词）。</li>
+      <li><strong>数据流水线</strong>：用 Python 脚本将词表、音标、词频三源合并生成 <span class="k">8,543</span> 词词库（CET-4 4,545 + CET-6 3,998），重叠词自动去重并继承学习进度；341 个精编词条含音标、真题例句、词根助记与形近辨析。</li>
+      <li><strong>工程形态</strong>：PWA 离线可用（manifest + Service Worker），数据全部落 <span class="k">localStorage</span>，无服务端、不上传用户数据；配置 2 条 GitHub Actions 流水线与 13 个 Python/TS 自动化脚本。</li>
+      <li><strong>学习机制</strong>：主动回忆（先作答再自评）+ XP 等级、连胜记录、12 周打卡热力图、12 枚成就徽章，共 9 个功能页面。</li>
+      <li><strong>在线体验</strong>：<a href="https://fjw66666666.github.io/cetyi-cet-vocab/">fjw66666666.github.io/cetyi-cet-vocab/</a>　|　<strong>源码</strong>：<a href="https://github.com/fjw66666666/cetyi-cet-vocab">github.com/fjw66666666/cetyi-cet-vocab</a></li>
+    </ul>
+    <!--
+      ★ 报告 P1-8 建议新增「关键决策与取舍」一节 —— 这是把「AI 帮你写」
+        翻转为「你懂技术」最有效的手段。以下三个问题请你用真实答案填，
+        不要编（面试官会顺着追问）：
+          · 为什么选 SM-2 改进版，而不是 FSRS 或 Anki 的方案？改的是哪一步？
+          · 词库从哪来、怎么清洗去重？数据量增长后瓶颈在哪？
+          · 为什么用 localStorage 而不是 IndexedDB？到多少条会撑不住？
+        写好后再解开注释：
+
+      <h3 style="margin-top:7px">关键决策与取舍</h3>
+      <ul>
+        <li><strong>调度算法</strong>：……</li>
+        <li><strong>数据存储</strong>：选 localStorage 是因为……，已知局限是……</li>
+        <li><strong>词库清洗</strong>：……</li>
+      </ul>
+    -->
+  </section>
+
+  <!-- ══ 技能 ═══════════════════════════════════════════════════════ -->
+  <section>
+    <h2>技能</h2>
+    <dl>
+      <div class="skill-row">
+        <dt>编程与工具</dt>
+        <dd><span class="k">TypeScript · React 19 · Vite 7 · Tailwind CSS 3 · Radix UI · react-router 7 · Python</span>（均在实际项目中使用，非纸面罗列）</dd>
+      </div>
+      <div class="skill-row">
+        <dt>工程能力</dt>
+        <dd>PWA / Service Worker、localStorage 数据层、GitHub Actions CI、自动化脚本编写</dd>
+      </div>
+      <div class="skill-row">
+        <dt>算法</dt>
+        <dd>间隔重复调度（SM-2 改进版）、纯函数状态机设计</dd>
+      </div>
+      <div class="skill-row">
+        <dt>AI 方向</dt>
+        <dd>AI 应用与提示词工程（持阿里巴巴 AI 初级训练师资格证）</dd>
+      </div>
+      <div class="skill-row">
+        <dt>英语</dt>
+        <dd>CET-4 已报考，成绩尚未公布</dd>
+      </div>
+    </dl>
+  </section>
+
+  <!-- ══ 作品集入口 ═════════════════════════════════════════════════ -->
+  <section>
+    <h2>作品集</h2>
+    <p class="subtitle" style="margin-top:2px">
+      个人主页（含四个主题的交互版项目详情）：<a href="https://fjw66666666.github.io/resume/">fjw66666666.github.io/resume/</a>
+    </p>
+  </section>
+
+  <p class="foot">更新于 2026-09</p>
+
+</main>
+</body>
+</html>
