@@ -437,7 +437,6 @@ ul { margin: 0; padding: 0; list-style: none; }
 .nav a:hover {
   color: var(--text);
   text-decoration: none;
-  /* 悬停预览：淡强调色底，比 is-active 更轻，仅作视觉提示，不触发跳转 */
   background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 /* 当前所在板块高亮 */
@@ -2538,6 +2537,41 @@ function initScrollSpy() {
 }
 
 /**
+ * 悬停导航：鼠标划过导航项即滚动到对应板块（无需点击）。
+ * 设计要点：
+ *   · 即时触发，没有任何延时 —— 划过哪一项就跳哪一项。
+ *   · 用 scrollIntoView 而非改 location.hash —— 不污染浏览器后退历史。
+ *   · 保留一个「重复触发闸门」：顶栏是 position: fixed，跳转过程中鼠标可能
+ *     仍停在原项上，浏览器在滚动时可能重新派发 hover 事件。没有这道闸门，
+ *     同一个导航项会被反复触发。这不是「防误触」，是防死循环，故保留。
+ *   · 未拦截任何事件：点击 / 键盘 / 触屏的原有行为完全不受影响。
+ * 【可降级】开启「减少动态效果」时为瞬时跳转。
+ */
+function initHoverNav() {
+  const links = document.querySelectorAll('.nav a[data-target]');
+  if (!links.length) return;
+
+  const instant = respectsReducedMotion(); // 减少动态效果 → 瞬时跳转
+
+  links.forEach(function (link) {
+    let fired = false;                     // 本次悬停是否已触发过
+
+    link.addEventListener('mouseenter', function () {
+      if (fired) return;                   // 同一项在一次悬停内只跳一次
+      fired = true;
+      const target = document.getElementById(link.getAttribute('data-target'));
+      if (target) {
+        target.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' });
+      }
+    });
+
+    link.addEventListener('mouseleave', function () {
+      fired = false;                       // 移开后重新武装，可再次触发
+    });
+  });
+}
+
+/**
  * 入场淡入：元素滚动进入视口时淡入。
  * 【可降级】开启「减少动态效果」时直接跳过，元素保持正常显示。
  */
@@ -2604,6 +2638,7 @@ function init() {
   // 4) 交互增强（可降级）
   bindThemeSwitcher();
   initScrollSpy();
+  initHoverNav();
   initReveal();
   bindPrintButton();
 }
