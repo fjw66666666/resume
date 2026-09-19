@@ -66,6 +66,9 @@
   <style>
     .topbar { display: none !important; }
     .hero { padding-top: var(--space-5) !important; }
+    /* 仪表盘 / 主按钮 / 姓名以外的 Hero 字段都需要 JS 填充；
+       无 JS 时把它们隐藏，避免露出「4 个空框」这种半成品观感。 */
+    .meters, .actions, .meta-row, .pinyin { display: none !important; }
   </style>
 </noscript>
 
@@ -655,6 +658,12 @@ ul { margin: 0; padding: 0; list-style: none; }
   letter-spacing: .1em;
   color: var(--text-dim);
 }
+/* 占位骨架：JS 注入真实数字之前，用 CSS 生成的不可见字符把行高撑满。
+   为什么用 CSS 生成而不是写在 HTML 里：① 文字不落到 HTML，无 JS 时不会
+   露出占位文案；② :empty 选择器在 JS 填入内容后自动失效，无需清理。
+   效果：注入前后高度完全一致 → 零布局位移（CLS 0）。 */
+#heroMeters .num:empty::before,
+#heroMeters .lbl:empty::before { content: "\00a0"; }
 
 /* 「查看作品」「GitHub」等主行动按钮 */
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: var(--space-4); }
@@ -1332,8 +1341,20 @@ img { max-width: 100%; height: auto; display: block; }
             <p class="pinyin" id="heroPinyin">FU JIAWANG</p>
             <p class="tagline" id="heroTagline"></p>
             <div class="meta-row" id="heroMeta"></div>
-            <!-- 数字仪表盘（HUD 风格） -->
-            <div class="meters" id="heroMeters"></div>
+            <!-- 数字仪表盘（HUD 风格）
+                 ★ 这 4 个空壳是「占位骨架」，不是内容 —— JS 会用 PROFILE.meters
+                   把它们整批替换掉。为什么要有：仪表盘初始高度为 0，JS 注入后
+                   会突然长到 100~216px，把下方全部内容顶下去（实测 CLS 0.324，
+                   Lighthouse 性能分因此从 100 掉到 83）。
+                   空壳与真实结构完全一致，配合 CSS 里的 :empty::before 撑出行高，
+                   使「注入前」与「注入后」高度分毫不差 —— 零布局位移。
+                   占位文字由 CSS 生成，不在 HTML 里，所以无 JS 时看不到乱码。 -->
+            <div class="meters" id="heroMeters">
+              <div class="meter"><span class="num"></span><span class="lbl"></span></div>
+              <div class="meter"><span class="num"></span><span class="lbl"></span></div>
+              <div class="meter"><span class="num"></span><span class="lbl"></span></div>
+              <div class="meter"><span class="num"></span><span class="lbl"></span></div>
+            </div>
             <!-- 主行动按钮 -->
             <div class="actions" id="heroActions"></div>
           </div>
