@@ -1838,7 +1838,10 @@ function renderProfile(identity, contact, meters, resume) {
         attrs: {
           href: resumeCfg.file,
           download: resumeCfg.downloadName || '',
-          'aria-label': '下载 PDF 版简历（' + (resumeCfg.downloadName || '') + '）'
+          // ⚠️ aria-label 必须以可见文字「下载 PDF 简历」开头：
+          //    WCAG 2.5.3（Label in Name）要求无障碍名称包含可见标签，
+          //    否则读屏用户说「点击下载 PDF 简历」时无法定位到本按钮。
+          'aria-label': '下载 PDF 简历（' + (resumeCfg.downloadName || '') + '）'
         }
       }));
     }
