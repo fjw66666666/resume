@@ -64,11 +64,10 @@
 -->
 <noscript>
   <style>
+    /* 顶部栏（导航 / 主题按钮）由 JS 生成，无 JS 时是一条空栏 —— 隐藏掉。
+       Hero 区已静态化，不需要任何隐藏规则，直接可见。 */
     .topbar { display: none !important; }
     .hero { padding-top: var(--space-5) !important; }
-    /* 仪表盘 / 主按钮 / 姓名以外的 Hero 字段都需要 JS 填充；
-       无 JS 时把它们隐藏，避免露出「4 个空框」这种半成品观感。 */
-    .meters, .actions, .meta-row, .pinyin { display: none !important; }
   </style>
 </noscript>
 
@@ -658,12 +657,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   letter-spacing: .1em;
   color: var(--text-dim);
 }
-/* 占位骨架：JS 注入真实数字之前，用 CSS 生成的不可见字符把行高撑满。
-   为什么用 CSS 生成而不是写在 HTML 里：① 文字不落到 HTML，无 JS 时不会
-   露出占位文案；② :empty 选择器在 JS 填入内容后自动失效，无需清理。
-   效果：注入前后高度完全一致 → 零布局位移（CLS 0）。 */
-#heroMeters .num:empty::before,
-#heroMeters .lbl:empty::before { content: "\00a0"; }
 
 /* 「查看作品」「GitHub」等主行动按钮 */
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: var(--space-4); }
@@ -1333,30 +1326,42 @@ img { max-width: 100%; height: auto; display: block; }
           <!-- 头像：由 renderProfile() 写入（有照片渲染 <img>，无照片渲染首字） -->
           <div class="avatar" id="avatar" aria-hidden="true"></div>
           <div>
-            <!-- ★ 静态兜底（P0-4 / P2-15）：姓名直接写死在 HTML 里，
-                 JS 加载后用 textContent 覆盖（同名时视觉零变化）。
-                 好处：无 JS、JS 报错、或被 ATS / 爬虫 / 读屏软件直接读源码时，
-                 都能拿到姓名，不再是一个空 <h1>。 -->
+            <!--
+              ══ Hero 静态化（P0-4 渐进增强 + 消除布局位移 CLS）══════════════════
+              ★ 为什么把内容直接写死在 HTML 里：本站正文原本全靠 JS 注入，
+                而「空标签 → JS 填内容」会让元素在首屏突然长高，把下方内容
+                整片顶下去 —— 实测 CLS 最高 0.32（Lighthouse 性能分 83/100）。
+              ★ 现在 HTML 里就是最终内容，JS 加载后用 textContent 等价覆盖：
+                文字一字不差，视觉零变化，但「注入前」与「注入后」高度完全相同
+                → 布局位移归零；同时无 JS / JS 报错 / 被 ATS 爬取时也能读到内容。
+              ★ 维护提醒：改姓名 / 学校 / 简介 / 数字时，这里和 PROFILE 要一起改
+                （同 <h1>、<noscript>、JSON-LD 的约定）。
+              ══════════════════════════════════════════════════════════════════
+            -->
             <h1 id="heroName">付加旺</h1>
             <p class="pinyin" id="heroPinyin">FU JIAWANG</p>
-            <p class="tagline" id="heroTagline"></p>
-            <div class="meta-row" id="heroMeta"></div>
-            <!-- 数字仪表盘（HUD 风格）
-                 ★ 这 4 个空壳是「占位骨架」，不是内容 —— JS 会用 PROFILE.meters
-                   把它们整批替换掉。为什么要有：仪表盘初始高度为 0，JS 注入后
-                   会突然长到 100~216px，把下方全部内容顶下去（实测 CLS 0.324，
-                   Lighthouse 性能分因此从 100 掉到 83）。
-                   空壳与真实结构完全一致，配合 CSS 里的 :empty::before 撑出行高，
-                   使「注入前」与「注入后」高度分毫不差 —— 零布局位移。
-                   占位文字由 CSS 生成，不在 HTML 里，所以无 JS 时看不到乱码。 -->
+            <p class="tagline" id="heroTagline">电气工程及其自动化专业大一在读。在业余时间以 AI 辅助开发的方式，独立完成产品设计、技术选型与数据流水线搭建，交付了一款已上线的四六级词汇记忆 PWA。</p>
+            <div class="meta-row" id="heroMeta">
+              <span class="chip chip--accent">江苏大学梦溪学院 · 电气工程及其自动化 · 2026 级本科在读</span>
+              <span class="chip"><span class="k">性别</span> 男</span>
+              <span class="chip"><span class="k">坐标</span> 江苏 · 镇江</span>
+              <span class="chip">电气工程</span>
+              <span class="chip">AI 学习者</span>
+              <span class="chip">Vibe Coding</span>
+            </div>
+            <!-- 数字仪表盘（HUD 风格，数字均来自 PROFILE.meters 的真实事实） -->
             <div class="meters" id="heroMeters">
-              <div class="meter"><span class="num"></span><span class="lbl"></span></div>
-              <div class="meter"><span class="num"></span><span class="lbl"></span></div>
-              <div class="meter"><span class="num"></span><span class="lbl"></span></div>
-              <div class="meter"><span class="num"></span><span class="lbl"></span></div>
+              <div class="meter"><span class="num">11,914</span><span class="lbl">行代码</span></div>
+              <div class="meter"><span class="num">103</span><span class="lbl">源文件</span></div>
+              <div class="meter"><span class="num">8,543</span><span class="lbl">词库容量</span></div>
+              <div class="meter"><span class="num">4</span><span class="lbl">天交付</span></div>
             </div>
             <!-- 主行动按钮 -->
-            <div class="actions" id="heroActions"></div>
+            <div class="actions" id="heroActions">
+              <a class="btn btn--primary" href="resume.pdf" download="付加旺-江苏大学-简历.pdf" aria-label="下载 PDF 简历（付加旺-江苏大学-简历.pdf）">下载 PDF 简历</a>
+              <a class="btn" href="#projects">查看项目作品</a>
+              <a class="btn" href="https://github.com/fjw66666666" target="_blank" rel="noopener noreferrer">GitHub 主页</a>
+            </div>
           </div>
         </div>
       </div>
