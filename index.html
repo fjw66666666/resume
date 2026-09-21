@@ -10,6 +10,8 @@
    · 想换配色 → 只改 CSS 里的颜色变量（Ctrl+F 搜索 "--accent"）。
    · 想加主题 → THEMES 加一条 + CSS 加一段 [data-theme="..."]，按钮会自动出现。
    · 想隐藏板块 / 调顺序 → 只改 SECTION_CONFIG（Ctrl+F 搜索 "const SECTION_CONFIG"）。
+   · 想调背景粒子 / 滚动入场动画 / 干脆全部关掉
+     → 只改 FX（Ctrl+F 搜索 "const FX"）。关掉后页面功能一点不受影响。
    · 详细修改教程见同目录《使用说明.md》。
   ============================================================================
 -->
@@ -141,14 +143,15 @@
    目录（方便你快速定位）：
      ①  主题变量（CSS 变量体系 · 四套主题）
      ②  全局重置与排版
-     ③  背景装饰（网格 / 扫描线 / 星点）
+     ③  背景装饰（网格 / 扫描线）+ 粒子背景层容器（#particleCanvas）
      ④  顶部导航与主题切换按钮
      ⑤  Hero 主视觉
      ⑥  通用板块容器与卡片（玻璃拟态）
      ⑦  各板块专属样式（档案/教育/技能/项目/荣誉/兴趣/页脚）
-     ⑧  动效与入场动画
+     ⑧  动效与入场动画（含滚动错峰延迟 --reveal-delay）
      ⑨  响应式断点
      ⑩  打印样式
+     ⑪  backdrop-filter 增强
    ============================================================================ */
 
 
@@ -159,6 +162,12 @@
      所以「改一个变量 = 全站变色」，不需要去改任何组件的样式。
    · 想换某套主题的强调色？只改对应块里的 --accent 一行即可。
    · 想加第五套主题？见文件底部 THEMES 对象旁的说明。
+   ★ 四套主题的「背景四层」已于本次调优中整体压暗（--bg 约 -39% ~ -53% 相对亮度，
+     其余三层约 -15% ~ -22%），目的是营造更深邃的氛围。压暗时严格遵守两条底线：
+     ①  --bg < --bg-soft < --surface < --surface-2 的明度递进不能压平
+         （每两级相邻对比度均保持在 1.03 以上，与原值相差不到 2%）；
+     ②  --text / --text-dim 对 --bg 的对比度只升不降（压暗底色 = 浅色文字更清楚）。
+     geek-code 的 --bg 本来就是纯黑，改为压暗它上面三层（详见该块内的注释）。
    ============================================================================ */
 
 /* ── 基础变量（所有主题共享的部分；颜色会被下方的主题块覆盖） ── */
@@ -182,20 +191,22 @@
 /* ── A · 深空冷峻（默认主题）────────────────────────────────────────────
    气质：冷峻、克制、真空、信任感
    手法：深蓝黑底 + 青白冷光 + 细网格 + 大面积留白
+   ★ 四层背景（--bg → --surface-2）整体压暗约 19% ~ 39%（相对亮度），
+     营造更「深邃」的真空感；每两级的明度递进关系保持原样（见文件末尾说明）。
    ──────────────────────────────────────────────────────────────────── */
 :root,
 [data-theme="deep-space"] {
-  --bg:        #05080f;                  /* 页面底色 */
-  --bg-soft:   #0a1220;                  /* 次级底色（页面分区） */
-  --surface:   #0e1725;                  /* 卡片背景 */
-  --surface-2: #131f30;                  /* 卡片内嵌套层背景 */
-  --border:    #1e3350;                  /* 描边色 */
-  --text:      #e6f1ff;                  /* 主文字（对底色对比度 ≈ 13:1） */
-  --text-dim:  #8fa9c4;                  /* 次要文字 */
+  --bg:        #030509;                  /* 页面底色 */
+  --bg-soft:   #080f1b;                  /* 次级底色（页面分区） */
+  --surface:   #0c141f;                  /* 卡片背景 */
+  --surface-2: #111b2b;                  /* 卡片内嵌套层背景 */
+  --border:    #1e3350;                  /* 描边色（背景压暗后对比度反而更高，故不动） */
+  --text:      #e6f1ff;                  /* 主文字（对底色对比度 ≈ 17.9:1） */
+  --text-dim:  #8fa9c4;                  /* 次要文字（对底色对比度 ≈ 8.4:1） */
   --accent:    #4da3ff;                  /* 主强调色 */
   --accent-2:  #7ee0ff;                  /* 次强调色（渐变末端） */
   --glow:      rgba(77,163,255,.45);     /* 发光色（含透明度） */
-  --grid:      rgba(77,163,255,.06);     /* 背景网格线色 */
+  --grid:      rgba(77,163,255,.07);     /* 背景网格线色（底色压暗后略提，保证网格仍可见） */
   --radius:    14px;                     /* 统一圆角 */
 }
 
@@ -204,17 +215,17 @@
    手法：近黑紫底 + 品红/青双霓虹 + 扫描线 + 霓虹描边发光
    ──────────────────────────────────────────────────────────────────── */
 [data-theme="cyber-neon"] {
-  --bg:        #07030d;
-  --bg-soft:   #100622;
-  --surface:   #170a2b;
-  --surface-2: #1f0d38;
+  --bg:        #040207;
+  --bg-soft:   #0d051c;
+  --surface:   #140825;
+  --surface-2: #1b0c32;
   --border:    #4a1f7a;
   --text:      #f5e9ff;
   --text-dim:  #b490d8;
   --accent:    #ff2d95;
   --accent-2:  #00f0ff;
   --glow:      rgba(255,45,149,.55);
-  --grid:      rgba(255,45,149,.07);
+  --grid:      rgba(255,45,149,.08);     /* 底色压暗后略提，保证网格仍可见 */
   --radius:    12px;
   /* 字体族继承 :root，不重复声明 —— 保证四套主题字体一致 */
 }
@@ -222,19 +233,24 @@
 /* ── C · 极客代码流 ────────────────────────────────────────────────────
    气质：终端、黑客、极简
    手法：纯黑底 + 荧光绿 + 等宽字体主导 + 终端窗口装饰
+   ★ 注意：本主题的 --bg 已经是 #000000（纯黑，物理上无法再暗），
+     所以「加深」是通过压暗上面三层（--bg-soft / --surface / --surface-2，
+     相对亮度各降约 15% ~ 18%）来实现的 —— 底色不动、卡片层整体下压，
+     反而把「纯黑底 → 深灰卡片」的层次拉得更开，深度感更明确。
+     以后看到「为什么这套的 --bg 没变」时，答案就在这里。
    ──────────────────────────────────────────────────────────────────── */
 [data-theme="geek-code"] {
-  --bg:        #000000;
-  --bg-soft:   #0a0d0a;
-  --surface:   #0d120d;
-  --surface-2: #121a12;
+  --bg:        #000000;                  /* 纯黑，已到底，不再改动 */
+  --bg-soft:   #080b08;
+  --surface:   #0b100b;
+  --surface-2: #101710;
   --border:    #1f3a1f;
   --text:      #d4ffd4;
   --text-dim:  #6f9c6f;
   --accent:    #33ff66;
   --accent-2:  #aaffaa;
   --glow:      rgba(51,255,102,.45);
-  --grid:      rgba(51,255,102,.05);
+  --grid:      rgba(51,255,102,.05);     /* 底色未变，网格可见度不变，故保持原值 */
   --font-display: 'JetBrains Mono', 'Consolas', 'PingFang SC', 'Microsoft YaHei', monospace;  /* 本主题标题用等宽（带中文兜底） */
   --font-body:    'JetBrains Mono', 'Consolas', 'PingFang SC', 'Microsoft YaHei', monospace;  /* 本主题正文也用等宽 */
   --radius:    4px;
@@ -245,17 +261,17 @@
    手法：深青灰底 + 琥珀/青双色 + 角标 + 刻度 + 数据条
    ──────────────────────────────────────────────────────────────────── */
 [data-theme="hud-panel"] {
-  --bg:        #06100f;
-  --bg-soft:   #0a1a18;
-  --surface:   #0d2320;
-  --surface-2: #122e2a;
+  --bg:        #030908;
+  --bg-soft:   #081614;
+  --surface:   #0b1f1c;
+  --surface-2: #102a26;
   --border:    #1c4a43;
   --text:      #d8fff8;
   --text-dim:  #7fb3aa;
   --accent:    #ffb000;
   --accent-2:  #00e5c8;
   --glow:      rgba(255,176,0,.45);
-  --grid:      rgba(0,229,200,.07);
+  --grid:      rgba(0,229,200,.08);      /* 底色压暗后略提，保证网格仍可见 */
   --radius:    2px;                      /* 直角感更强，像仪表盘 */
 }
 
@@ -323,7 +339,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 
 /* ============================================================================
-   ③  背景装饰 —— 网格 + 扫描线（低对比，不抢内容）
+   ③  背景装饰 —— 网格 + 扫描线 + 粒子层（低对比，不抢内容）
    ============================================================================ */
 .bg-decor {
   position: fixed;
@@ -347,6 +363,22 @@ ul { margin: 0; padding: 0; list-style: none; }
     repeating-linear-gradient(0deg, var(--grid) 0 1px, transparent 1px 4px),
     radial-gradient(ellipse 80% 50% at 50% -10%, var(--glow), transparent 70%);
   background-size: 100% 4px, 100% 100%;
+}
+
+/* ── 粒子背景层（Canvas 2D，由 JS 绘制，纯装饰）─────────────────────────
+   ★ 层级：.bg-decor(z-index:0) → #particleCanvas(z-index:0，靠 DOM 顺序压在网格
+     之上) → .page(z-index:1，全部正文)。三层互不遮挡，正文永远在最上面。
+   ★ pointer-events:none 是关键：粒子层**绝不拦截**正文的鼠标事件与点击。
+   ★ 画布尺寸（CSS 宽高）由 JS 在 resize 时按视口设置；这里只兜底 100%。
+   ★ 若 JS 未执行 / 被关闭，这个元素就是一块空白层，页面完全不受影响。 */
+#particleCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;                              /* 与 .bg-decor 同层，靠 DOM 顺序压住网格 */
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;                    /* 装饰层不接收鼠标事件 */
 }
 
 /* 所有正文内容浮在装饰层之上 */
@@ -1017,13 +1049,27 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 /* ============================================================================
    ⑧  动效（入场淡入）。默认开启，若系统开启「减少动态效果」会自动关闭。
+   ──────────────────────────────────────────────────────────────────────────
+   ★ 关键安全设计：下面这一整段只在「系统没有要求减少动态效果」时才生效。
+     也就是说，用户一旦开启「减少动态效果」：
+       · 本段 CSS 完全不存在 → 元素天生就是 opacity:1，绝不会「永远看不见」；
+       · JS 侧 initReveal() 也会直接 return，连 .reveal 类都不会加。
+     两重保险，杜绝「开了减少动态效果 → 内容消失」这类严重事故。
+   ★ 三个可调参数由 JS 写入元素的行内样式（来源是配置区 FX.reveal）：
+       --reveal-delay     错峰延迟（第 i 个兄弟元素 = i × FX.reveal.stagger）
+       --reveal-distance  上移距离（FX.reveal.distance）
+       --reveal-duration  单次动画时长（FX.reveal.duration）
+     不写就用括号里的默认值，所以即使 JS 没跑到，动画也照常正常。
    ============================================================================ */
 @media (prefers-reduced-motion: no-preference) {
-  /* 滚动进入视口时淡入 + 轻微上移 */
+  /* 滚动进入视口时淡入 + 轻微上移（幅度克制：默认 14px） */
   .reveal {
     opacity: 0;
-    transform: translateY(14px);
-    transition: opacity .5s ease, transform .5s ease;
+    transform: translateY(var(--reveal-distance, 14px));
+    transition-property: opacity, transform;
+    transition-duration: var(--reveal-duration, 560ms);
+    transition-timing-function: cubic-bezier(.22, .61, .36, 1);   /* ease-out，收尾平稳 */
+    transition-delay: var(--reveal-delay, 0ms);                   /* 同容器内错峰出现 */
   }
   .reveal.is-visible { opacity: 1; transform: none; }
 
@@ -1170,7 +1216,12 @@ img { max-width: 100%; height: auto; display: block; }
 @media print {
   /* ★ 注意：.footer-links 不能在这里隐藏 —— 它是邮箱 / GitHub 的落点，
      打印出来的纸必须能被 HR 联系到（P0-3）。 */
-  .bg-decor, .topbar, .actions, .project-actions { display: none !important; }
+  .bg-decor, #particleCanvas, .topbar, .actions, .project-actions { display: none !important; }
+  /* ★ 粒子层（#particleCanvas）必须一起隐藏：打印出来是一张白纸黑字，
+     不能带任何背景粒子，否则既费墨又影响 HR 阅读。
+     ★ 入场动画状态一律清零：万一某个元素在点「打印」时还没滚动到（仍是
+     opacity:0），纸面上也必须完整可见 —— 打印件绝不能缺内容。 */
+  .reveal { opacity: 1 !important; transform: none !important; }
   body { background: #fff; color: #111; font-size: 12px; }
   .card, .kv, .facts, .fact, .lang { background: #fff !important; border-color: #ccc !important; box-shadow: none !important; }
   .section { padding: 14px 0; break-inside: avoid; }
@@ -1209,6 +1260,17 @@ img { max-width: 100%; height: auto; display: block; }
 <body>
 <!-- 装饰层：背景网格 / 扫描线（aria-hidden 表示对读屏软件隐藏） -->
 <div class="bg-decor" aria-hidden="true"></div>
+
+<!--
+  装饰层：粒子背景（Canvas 2D，由 JS 绘制）。
+  ★ 位置很讲究：必须排在 .bg-decor 之后、.page 之前 —— 三层同为 z-index:0/1，
+    靠 DOM 顺序决定叠放：网格在最底 → 粒子压在网格上 → 正文(.page, z-index:1)最上。
+  ★ aria-hidden="true"：纯装饰，对读屏软件完全隐藏，不干扰无障碍体验。
+  ★ pointer-events:none（在 CSS 里）：绝不拦截正文的鼠标事件与点击。
+  ★ 想关掉粒子 / 调数量颜色 → 只改配置区 FX（Ctrl+F 搜索 "const FX"）。
+  ★ JS 未执行时这里就是一块空白层，页面照常完整可读。
+-->
+<canvas id="particleCanvas" aria-hidden="true"></canvas>
 
 <!--
   ══ 无 JS 兜底摘要（P0-4）═══════════════════════════════════════════════
@@ -1393,12 +1455,14 @@ img { max-width: 100%; height: auto; display: block; }
  *  目录
  *    PART 1 · 个人信息配置区（PROFILE）—— ★ 你只需要改这一块
  *    PART 1.5 · 板块配置区（SECTION_CONFIG）—— 控制板块顺序与显隐
+ *    PART 1.6 · 视觉特效配置区（FX）—— 粒子背景 / 滚动入场动画的开关与参数
  *    PART 2 · 主题配置区（THEMES）
  *    PART 3 · 工具函数（DOM 助手、占位符判断）
  *    PART 4 · 渲染函数（把 PROFILE 变成页面）
  *    PART 5 · 主题服务（applyTheme / initTheme / bindThemeSwitcher）
  *    PART 6 · 交互增强（滚动高亮 / 入场动画 / 打印）
- *    PART 7 · 总入口 init()
+ *    PART 6.5 · 粒子背景（Canvas 2D，纯装饰，可完全关闭 / 自动降级）
+ *    PART 7 · 总入口（safeInit 安全执行器 + init()）
  * ============================================================================ */
 
 
@@ -1688,6 +1752,74 @@ const SECTION_CONFIG = [
 
 
 /* ============================================================================
+ *  PART 1.6 · 视觉特效配置区（FX）
+ *  ──────────────────────────────────────────────────────────────────────────
+ *  ▼ 背景粒子（随鼠标上下浮动）与「滚动逐步出现」动画，全部在这里控制。
+ *  ▼ 每一项后面都写了「改这里会怎样」，照着改就不会错。
+ *  ▼ 页面看腻了 / 觉得卡 / 想省电：把 enabled 改成 false 即可干净关掉，
+ *    背景只剩原有的网格，页面功能一点不受影响。
+ *  ▼ 粒子颜色不用在这里配 —— 它自动跟随当前主题（读 CSS 的 --accent /
+ *    --accent-2 / --glow），所以你切主题时粒子颜色会同步变，无需改任何东西。
+ * ============================================================================ */
+const FX = {
+
+  /* ── 背景粒子（Canvas 2D 绘制，纯装饰）───────────────────────────── */
+  particles: {
+    enabled: true,          // ★ 总开关。改成 false → 完全关闭粒子（不创建画布、
+                            //   不启动动画、不监听鼠标），背景只剩原来的网格。
+                            //   页面内容、主题切换、导航等一切照旧。
+
+    density: 12500,         // ★ 粒子密度。数值越小 → 粒子越多（这是「每个粒子
+                            //   分到多少平方像素」的意思）。想让粒子更密就改小
+                            //   （如 9000），想更稀疏就改大（如 20000）。
+
+    minCount: 36,           // 粒子数量下限（小窗口时至少画这么多个，避免太空）
+                            //   ⚠️ 这个下限是在「移动端减半之前」生效的：
+                            //      窄屏（< 768px）会再砍一半，所以手机上实际最少 18 个。
+    maxCount: 160,          // ★ 粒子数量上限。数量越多越费电，一般不用超过 200。
+                            //   ⚠️ 窄屏（< 768px）会在此基础上再砍半，所以手机上最多 80 个。
+
+    speed: 1,               // 整体速度倍率。1 = 标准；0.5 = 慢一倍；
+                            //   0 = 粒子完全静止（只保留鼠标互动）。建议 0.5 ~ 2。
+
+    size: 1,                // 粒子尺寸倍率。1 = 标准（直径约 0.6 ~ 2.4px，很克制）；
+                            //   1.5 = 明显一些；2 = 比较抢眼（会略微影响正文可读性）。
+
+    opacity: 1,             // 粒子透明度倍率。1 = 标准；0.5 = 更淡（更不抢内容）；
+                            //   调到 0 等于隐形（想彻底关掉请用上面的 enabled）。
+
+    mouseRadius: 140,       // ★ 鼠标影响半径（px）。鼠标周围这么远的粒子会被
+                            //   「垂直推开」。想更敏感就调大（如 200），
+                            //   想更含蓄就调小（如 90）。
+
+    mouseStrength: 1,       // ★ 鼠标影响强度倍率。1 = 标准；1.6 = 鼠标一动粒子
+                            //   明显上下弹开；0 = 只保留整场视差，不推开单个粒子。
+
+    parallax: 1             // 整场垂直视差倍率。鼠标在屏幕上/下移动时，整片粒子
+                            //   会轻微整体上浮/下沉。1 = 标准（约 ±14px）；
+                            //   0 = 关掉整体起伏（只保留单个粒子的排斥）。
+  },
+
+  /* ── 滚动入场动画（元素滚动进视口时淡入 + 轻微上移）───────────────── */
+  reveal: {
+    enabled: true,          // ★ 总开关。改成 false → 内容直接静态显示（不再淡入）。
+                            //   系统「减少动态效果」开启时，本项自动失效（强制不动画）。
+
+    stagger: 70,            // ★ 错峰间隔（毫秒）。同一个卡片/容器里的兄弟元素会依次
+                            //   出现：第 1 个 0ms、第 2 个 70ms、第 3 个 140ms……
+                            //   改成 0 = 同容器内一起出现；改成 120 = 排队感更明显。
+
+    staggerMax: 420,        // 错峰延迟上限（毫秒）。元素很多时避免最后几个等太久。
+
+    distance: 14,           // 上移距离（px）。元素出现前先在下方这么多像素处待命。
+                            //   8 ~ 18 之间比较克制；调太大（如 40）会显得飘。
+
+    duration: 560           // 单次动画时长（毫秒）。500 ~ 650 之间最顺眼。
+  }
+};
+
+
+/* ============================================================================
  *  PART 2 · 主题配置区
  *  ──────────────────────────────────────────────────────────────────────────
  *  ★ 每个主题对应 CSS 里的一段 [data-theme="xxx"] { --bg: ...; }
@@ -1765,6 +1897,67 @@ function clear(container) {
  */
 function byId(id) {
   return document.getElementById(id);
+}
+
+/**
+ * 宽容地取出 FX 里的某个子配置块（如 'reveal' / 'particles'）。
+ *
+ * ★ 为什么不能写成 FX && FX.reveal：如果 FX 整块被误删，FX 就是一个
+ *   **未声明的标识符**，直接引用会抛 ReferenceError: FX is not defined；
+ *   而 typeof FX 对未声明的标识符是安全的（返回 'undefined'，不抛错）。
+ * ★ 缺配置时返回空对象 {}，调用方按「开启 + 默认参数」处理 ——
+ *   即：新加的配置块被删掉时，特效只是回到默认值正常工作，而不是报错。
+ *
+ * @param {string} key - 子配置块名，如 'reveal' / 'particles'
+ * @returns {Object} 子配置块；缺失或类型不对时返回 {}
+ */
+function fxConfig(key) {
+  if (typeof FX === 'undefined' || !FX) return {};
+  const block = FX[key];
+  // ★ 排除数组：typeof [] 也是 'object'，但数组不是合法的配置块
+  return (block && typeof block === 'object' && !Array.isArray(block)) ? block : {};
+}
+
+/**
+ * 从配置块里读一个数字字段（读不到 / 不是有限数字时用默认值）。
+ * @param {Object} raw - 配置块
+ * @param {string} key - 字段名
+ * @param {number} fallback - 默认值
+ * @returns {number}
+ */
+function fxNumber(raw, key, fallback) {
+  const value = raw ? raw[key] : undefined;
+  return (typeof value === 'number' && isFinite(value)) ? value : fallback;
+}
+
+/** 已经提醒过的开关字段（同一字段只提醒一次，避免刷屏） */
+const FX_WARNED = {};
+
+/**
+ * 从配置块里读一个开关字段（true / false）。
+ * ★ 只有明确写布尔值才认。写成 'false'（带引号的字符串）/ 0 / null 这类
+ *   「看着像关闭、其实不是布尔」的值时，按 fallback（开启）处理，并打印一条
+ *   黄色提醒 —— 静默地「关了却没生效」比提醒一句更让人困惑。
+ * ★ 提醒用 console.warn 而不是 console.error：控制台不出现红色报错。
+ * @param {Object} raw - 配置块
+ * @param {string} key - 字段名，如 'enabled'
+ * @param {boolean} fallback - 缺配置时的默认值
+ * @returns {boolean}
+ */
+function fxFlag(raw, key, fallback) {
+  const value = raw ? raw[key] : undefined;
+  if (value === undefined) return fallback;          // 没写 → 用默认值
+  if (typeof value === 'boolean') return value;      // 规范写法 → 直接采用
+
+  // 写了、但不是布尔值：按默认值处理，并提醒一次
+  if (!FX_WARNED[key]) {
+    FX_WARNED[key] = true;
+    if (window.console && console.warn) {
+      console.warn('[FX] ' + key + ' 应该写布尔值 true 或 false（不要加引号），' +
+        '当前是 ' + typeof value + '（' + String(value) + '），已按「开启」处理。');
+    }
+  }
+  return fallback;
 }
 
 
@@ -2373,6 +2566,12 @@ function applyTheme(key) {
   document.documentElement.setAttribute('data-theme', safeKey);
   currentTheme = safeKey;
 
+  // ★ 粒子配色跟随主题：必须放在 setAttribute 之后，这样 getComputedStyle
+  //   读到的就是新主题的 --accent / --accent-2 / --glow。
+  //   ⚠️ applyTheme 在 init() 最开头就会被调用，那时粒子层还没初始化 ——
+  //       refreshParticleTheme() 内部有空值保护，会安全地直接返回，不抛错。
+  refreshParticleTheme();
+
   // 同步更新切换按钮上的文字与选项的高亮状态
   const label = byId('themeToggleLabel');
   if (label && THEMES[safeKey]) label.textContent = THEMES[safeKey].label;
@@ -2572,17 +2771,66 @@ function initHoverNav() {
 }
 
 /**
- * 入场淡入：元素滚动进入视口时淡入。
- * 【可降级】开启「减少动态效果」时直接跳过，元素保持正常显示。
+ * 入场动画：元素滚动进入视口时「轻微上移 + 淡入」，同一容器内的兄弟元素依次
+ * 错峰出现（stagger），营造逐层展开的流畅感。
+ *
+ * 覆盖范围：卡片 / 板块标题 / 数字仪表盘 / 键值行 / 兴趣卡 / 时间线条目 /
+ *           技能分组 / 项目标题行 / 要点列表项 / 数据网格 / 技术栈标签 /
+ *           荣誉卡 / 语言卡 / 页脚内容。
+ *
+ * 错峰算法：按「父容器」分组，同一父容器内第 i 个目标元素延迟 i × FX.reveal.stagger
+ *           毫秒（上限 FX.reveal.staggerMax）。延迟通过 CSS 自定义属性
+ *           --reveal-delay 传给样式表（见 CSS ⑧ 段的 transition-delay）。
+ *
+ * 【可降级 · 四重保险】
+ *   ① FX.reveal.enabled === false      → 直接 return，内容静态显示；
+ *   ② FX 或 FX.reveal 整块缺失          → 按「开启 + 默认参数」正常工作，**绝不抛错**
+ *      （宽容读取，而不是解引用 undefined）；
+ *   ③ respectsReducedMotion() 为真      → 直接 return（且 CSS 里的 .reveal 定义
+ *      整个位于 @media (prefers-reduced-motion: no-preference) 内，本就不生效）
+ *      → 元素保持 opacity:1，绝不会出现「内容永远看不见」；
+ *   ④ 浏览器不支持 IntersectionObserver → 直接 return，内容静态显示。
+ *   另外：进入视口后立刻 unobserve，动画只播一次，不反复消耗性能。
  */
 function initReveal() {
+  // ★ 宽容读取配置：FX 或 FX.reveal 整个缺失时按「开启 + 默认参数」处理，
+  //   绝不因为「新加的配置块没写 / 被误删」而抛错、更不牵连后面的打印按钮与粒子层。
+  const cfg = fxConfig('reveal');
+  if (fxFlag(cfg, 'enabled', true) === false) return;  // 只有明确写 false 才关闭
   if (respectsReducedMotion()) return;                 // 尊重系统设置：不动画
-  if (!('IntersectionObserver' in window)) return;
+  if (!('IntersectionObserver' in window)) return;     // 老浏览器：不动画
 
-  const targets = document.querySelectorAll('.card, .section-head, .meters, .kv, .interest');
+  // 缺配置时的默认参数（与 PART 1.6 里 FX.reveal 的默认值保持一致）
+  const stagger    = fxNumber(cfg, 'stagger', 70);
+  const staggerMax = fxNumber(cfg, 'staggerMax', 420);
+  const distance   = fxNumber(cfg, 'distance', 14);
+  const duration   = fxNumber(cfg, 'duration', 560);
+
+  // ⚠️ 这些元素都是 init() 里由 render*() 动态生成的，所以本函数必须在它们之后调用
+  //    （PART 7 的调用顺序已满足，勿改动）。
+  // ⚠️ 不要再往里加 .tag（单数）：那 10 个技术栈小标签全部位于 .stack 内部，
+  //    而 .stack 本身已经是动画目标，父子同时淡入会变成嵌套动画。
+  const targets = document.querySelectorAll(
+    '.card, .section-head, .meters, .kv, .interest, ' +
+    '.timeline-item, .skill-group, .project-head, .bullets li, ' +
+    '.facts, .stack, .achievement-card, .lang, .footer-inner'
+  );
   if (!targets.length) return;
 
-  targets.forEach(function (node) { node.classList.add('reveal'); });
+  const seen = new Map();                              // 父容器 → 该容器内已排到第几个
+
+  targets.forEach(function (node) {
+    // 同一父容器内的兄弟元素依次延迟；不同容器各自从 0 开始
+    const parent = node.parentNode || document.body;
+    const index = seen.has(parent) ? seen.get(parent) : 0;
+    seen.set(parent, index + 1);
+
+    const delay = Math.min(index * stagger, staggerMax);
+    node.style.setProperty('--reveal-delay', delay + 'ms');
+    node.style.setProperty('--reveal-distance', distance + 'px');
+    node.style.setProperty('--reveal-duration', duration + 'ms');
+    node.classList.add('reveal');
+  });
 
   const observer = new IntersectionObserver(function (entries) {
     entries.forEach(function (entry) {
@@ -2591,7 +2839,10 @@ function initReveal() {
         observer.unobserve(entry.target);              // 只淡入一次
       }
     });
-  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+  }, { rootMargin: '0px 0px -24px 0px', threshold: 0.05 });
+  // ⚠️ rootMargin 的底部只收 24px（固定值，不用百分比）：
+  //    页脚 .footer-inner 距文档底部固定 48px，用百分比在大屏上会把它整块挡在
+  //    「有效视口」之外，导致它永远不触发、永远停在 opacity:0 —— 必须避免。
 
   targets.forEach(function (node) { observer.observe(node); });
 }
@@ -2610,37 +2861,642 @@ function bindPrintButton() {
 
 
 /* ============================================================================
- *  PART 7 · 总入口
+ *  PART 6.5 · 粒子背景（Canvas 2D）
+ *  ──────────────────────────────────────────────────────────────────────────
+ *  ⚠️ 属于逻辑层，通常不需要改；想调效果 / 关掉它请回到 PART 1.6 的 FX。
+ *
+ *  设计要点：
+ *   · 纯装饰：canvas 带 pointer-events:none + aria-hidden，
+ *     既不拦截正文的鼠标事件与点击，也不干扰读屏软件。
+ *   · 颜色跟随主题：只从 CSS 变量读 --accent / --accent-2 / --glow，
+ *     JS 里**不出现任何硬编码颜色**。切主题时 applyTheme() 会调用
+ *     refreshParticleTheme() 重建光点贴图 → 粒子颜色即时变化，无需刷新。
+ *   · 性能：全站只有 1 个 requestAnimationFrame 循环；devicePixelRatio 上限 2；
+ *     resize 防抖 150ms；页面不可见时 cancelAnimationFrame 暂停（省电）；
+ *     每帧不调用 getComputedStyle；光点用**预渲染的径向渐变贴图** drawImage
+ *     绘制，比逐帧 arc + shadowBlur 快得多。
+ *   · 降级：FX.particles.enabled=false → 什么都不做；FX / FX.particles 整块缺失
+ *     → 按默认参数正常工作（不抛错）；getContext('2d') 返回 null → 静默跳过；
+ *     prefers-reduced-motion:reduce → 不启动动画循环，只画一帧静态图。
+ * ============================================================================ */
+
+/**
+ * 把 FX.particles 归一化成一份「字段保证齐全」的配置。
+ * ★ 宽容读取：FX 或 FX.particles 整个缺失时按默认值处理，绝不抛错。
+ * ★ 归一化后缓存在 PARTICLE.cfg 里 —— 之后每帧都读缓存，不再碰全局配置。
+ * @returns {Object} 字段齐全的粒子配置
+ */
+function particleConfig() {
+  const raw = fxConfig('particles');
+  return {
+    // ★ 只有明确写 false 才关闭；缺配置时按「开启」处理
+    enabled: fxFlag(raw, 'enabled', true),
+    density:       fxNumber(raw, 'density', 12500),
+    minCount:      fxNumber(raw, 'minCount', 36),
+    maxCount:      fxNumber(raw, 'maxCount', 160),
+    speed:         fxNumber(raw, 'speed', 1),
+    size:          fxNumber(raw, 'size', 1),
+    opacity:       fxNumber(raw, 'opacity', 1),
+    mouseRadius:   fxNumber(raw, 'mouseRadius', 140),
+    mouseStrength: fxNumber(raw, 'mouseStrength', 1),
+    parallax:      fxNumber(raw, 'parallax', 1)
+  };
+}
+
+/** 粒子层运行时状态（集中在一个对象里，避免污染全局命名空间） */
+const PARTICLE = {
+  cfg: particleConfig(), // 归一化后的粒子配置（缺配置时即为一套完整默认值）
+  canvas: null,          // <canvas id="particleCanvas">
+  ctx: null,             // 2D 上下文
+  items: [],             // 粒子数组
+  w: 0,                  // 视口宽（CSS px）
+  h: 0,                  // 视口高（CSS px）
+  dpr: 1,                // 设备像素比（上限 2）
+  raf: 0,                // requestAnimationFrame 句柄（全站唯一一个）
+  running: false,        // 动画循环是否在跑
+  started: false,        // 是否已成功初始化
+  reduced: false,        // 用户是否要求「减少动态效果」
+  last: 0,               // 上一帧时间戳
+  parallaxY: 0,          // 整场垂直视差的当前偏移（平滑逼近目标值）
+  spriteA: null,         // 主色光点贴图（由 --accent 生成）
+  spriteB: null,         // 次色光点贴图（由 --accent-2 生成）
+  mouse: { x: 0, y: 0, active: false, energy: 0 }   // 鼠标状态（只记坐标，不做任何 DOM 操作）
+};
+
+/**
+ * 把 CSS 颜色值解析成 "r,g,b" 三元组字符串。
+ * 支持 #rgb / #rrggbb / rgb() / rgba() 四种写法。
+ * ⚠️ 解析不了时返回空字符串，调用方据此跳过绘制 ——
+ *    这样 JS 里就不需要写任何硬编码兜底色（配色永远由 CSS 主题说了算）。
+ * @param {string} value - CSS 颜色值
+ * @returns {string} 形如 "77,163,255"，失败时返回 ''
+ */
+function toRgbTriplet(value) {
+  const text = String(value === null || value === undefined ? '' : value).trim();
+  if (!text) return '';
+
+  if (text.charAt(0) === '#') {
+    let hex = text.slice(1);
+    if (hex.length === 3) {
+      hex = hex.charAt(0) + hex.charAt(0) + hex.charAt(1) + hex.charAt(1) + hex.charAt(2) + hex.charAt(2);
+    }
+    if (hex.length !== 6 || !/^[0-9a-fA-F]{6}$/.test(hex)) return '';
+    return parseInt(hex.slice(0, 2), 16) + ',' +
+           parseInt(hex.slice(2, 4), 16) + ',' +
+           parseInt(hex.slice(4, 6), 16);
+  }
+
+  const m = text.match(/^rgba?\(\s*([0-9.]+)\s*[, ]\s*([0-9.]+)\s*[, ]\s*([0-9.]+)/i);
+  if (m) return Math.round(Number(m[1])) + ',' + Math.round(Number(m[2])) + ',' + Math.round(Number(m[3]));
+  return '';
+}
+
+/**
+ * 预渲染一颗「柔和发光」的光点贴图（径向渐变）。
+ * 之后每帧只需要 drawImage 缩放贴图，避免逐帧画渐变 / 用 shadowBlur 带来的开销。
+ * @param {string} core - 核心色，形如 "77,163,255"
+ * @param {string} halo - 光晕色，形如 "77,163,255"
+ * @returns {HTMLCanvasElement|null}
+ */
+function createGlowSprite(core, halo) {
+  const R = 24;                                   // 贴图半径（px），绘制时缩放到实际粒子大小
+  const sprite = document.createElement('canvas');
+  sprite.width = R * 2;
+  sprite.height = R * 2;
+  const c = sprite.getContext('2d');
+  if (!c) return null;
+
+  const g = c.createRadialGradient(R, R, 0, R, R, R);
+  g.addColorStop(0,    'rgba(' + core + ',1)');    // 实心核心
+  g.addColorStop(0.22, 'rgba(' + core + ',.72)');
+  g.addColorStop(0.5,  'rgba(' + halo + ',.26)');  // 柔和光晕
+  g.addColorStop(1,    'rgba(' + halo + ',0)');    // 边缘完全透明
+  c.fillStyle = g;
+  c.beginPath();
+  c.arc(R, R, R, 0, Math.PI * 2);
+  c.fill();
+  return sprite;
+}
+
+/**
+ * 读取当前主题的粒子配色（只读 CSS 变量，绝不硬编码颜色）。
+ * @returns {{accent:string, accent2:string, glow:string}|null} 读不到时返回 null
+ */
+function readThemeColors() {
+  try {
+    const cs = window.getComputedStyle(document.documentElement);
+    if (!cs) return null;
+    const accent = String(cs.getPropertyValue('--accent') || '').trim();
+    if (!accent) return null;
+    return {
+      accent:  accent,
+      accent2: String(cs.getPropertyValue('--accent-2') || '').trim(),
+      glow:    String(cs.getPropertyValue('--glow') || '').trim()
+    };
+  } catch (err) {
+    return null;                                  // 极端环境下不可用 → 静默跳过，不影响页面
+  }
+}
+
+/**
+ * 主题切换钩子：重建光点贴图，让粒子颜色立刻跟着新主题变。
+ * ★ 由 applyTheme() 调用，而 applyTheme() 在 init() 最开头就会跑一次
+ *   —— 那时粒子层还没初始化，所以这里**必须先做空值保护并直接返回**。
+ */
+function refreshParticleTheme() {
+  if (!PARTICLE.canvas) return;                   // 尚未初始化 / FX 里已关闭粒子 → 安全返回
+  const colors = readThemeColors();
+  if (!colors) return;
+
+  const core = toRgbTriplet(colors.accent);
+  if (!core) return;                              // 主题色读不到 → 保持原样（不硬编码兜底色）
+  const core2 = toRgbTriplet(colors.accent2) || core;
+  const halo = toRgbTriplet(colors.glow) || core;
+
+  PARTICLE.spriteA = createGlowSprite(core, halo);
+  PARTICLE.spriteB = createGlowSprite(core2, halo);
+
+  // 「减少动态效果」模式下没有动画循环，需要手动重画一帧，颜色才会更新
+  if (PARTICLE.reduced) drawParticles();
+}
+
+/**
+ * 按视口面积算出粒子数量（带上下限约束）。
+ * 面积越大粒子越多；配置里的 density 表示「每个粒子分到多少平方像素」，
+ * 所以数值越小 → 粒子越密。窄屏（<768px）再砍一半，保证手机端省电。
+ *
+ * ★ 「先截断到 [minCount, maxCount]、再砍半」这条顺序带来两条硬保证：
+ *   ①  上界：任何窄屏（< 768px）最多 maxCount / 2 = 80 颗，手机上不可能失控；
+ *   ②  相对关系：同一个视口尺寸下，窄屏算出的数量恒为「不减半」时的一半
+ *       —— 因为砍半发生在截断之后，不存在「先砍半再被下限抬回去」的翻转。
+ *
+ * ⚠️ 但要诚实说明一个副作用（这是「下限保底」的必然结果，不是 bug）：
+ *   由于 minCount 会把小屏的数量托到 36（再砍半 = 18），
+ *   320×480 这种极小的屏，单位面积粒子密度会略高于 1440×900 的大屏
+ *   （实测每颗粒子占地：小屏约 8500 px²、大屏约 12600 px²）。
+ *   这是刻意为之 —— 小屏若按公式算只有 7 颗，画面会空得像坏了。
+ *   并且本次调整后这个差距是**缩小**的（改前小屏 12800 px² / 大屏 22300 px²），
+ *   所以「窄屏反而比桌面还密」的观感在本次调整中是改善而非恶化。
+ *   下限同理：砍半后手机端恒 ≥ minCount/2 = 18 颗，不会出现「窄屏只有 3 颗」。
+ * @param {number} w - 视口宽（CSS px）
+ * @param {number} h - 视口高（CSS px）
+ * @returns {number}
+ */
+function particleCount(w, h) {
+  const cfg = PARTICLE.cfg;
+  const density = cfg.density > 0 ? cfg.density : 12500;   // 防御：配置误写成 0 / 负数
+  let n = Math.floor((w * h) / density);
+  n = Math.max(cfg.minCount, Math.min(cfg.maxCount, n));   // 上下限
+  if (w < 768) n = Math.round(n / 2);                      // 移动端再砍半
+  return Math.max(6, n);
+}
+
+/**
+ * 创建一颗粒子。
+ * @returns {Object}
+ */
+function createParticle() {
+  const cfg = PARTICLE.cfg;
+  const x = Math.random() * PARTICLE.w;
+  const y = Math.random() * PARTICLE.h;
+  return {
+    x: x,
+    y: y,
+    baseX: x,                                       // 弹簧回复的基准位置（横向基准）
+    baseY: y,                                       // 弹簧回复的基准位置（会随时间缓慢上浮）
+    vx: 0,
+    vy: 0,
+    r: (0.6 + Math.random() * 1.8) * cfg.size,      // 半径 0.6 ~ 2.4px（× 尺寸倍率）
+    alpha: 0.25 + Math.random() * 0.55,             // 基础透明度随机，层次更自然
+    drift: 0.06 + Math.random() * 0.14,             // 向上漂浮速度（px/帧）
+    swayAmp: 4 + Math.random() * 10,                // 横向摆动幅度（px）
+    swaySpeed: 0.0006 + Math.random() * 0.0012,     // 横向摆动快慢（周期约 5 ~ 10 秒）
+    phase: Math.random() * Math.PI * 2,             // 摆动相位（避免所有粒子同步摆动）
+    sprite: Math.random() < 0.5 ? 0 : 1             // 用主色还是次色贴图
+  };
+}
+
+/**
+ * 让粒子数量与当前视口匹配。
+ * ★ 保留已有粒子、只增删差额 —— 避免 resize 时整场粒子重新随机、视觉上「跳一下」。
+ */
+function syncParticleCount() {
+  const target = particleCount(PARTICLE.w, PARTICLE.h);
+  const items = PARTICLE.items;
+  while (items.length > target) items.pop();
+  while (items.length < target) items.push(createParticle());
+
+  // 视口变小后把跑到屏幕外的粒子拉回来，避免它们长时间不可见
+  items.forEach(function (p) {
+    if (p.baseX > PARTICLE.w) p.baseX = Math.random() * PARTICLE.w;
+    if (p.baseY > PARTICLE.h) p.baseY = Math.random() * PARTICLE.h;
+    if (p.x > PARTICLE.w + 24) p.x = p.baseX;
+    if (p.y > PARTICLE.h + 24) p.y = p.baseY;
+  });
+}
+
+/**
+ * 调整画布尺寸（CSS 尺寸 + 物理像素尺寸），并同步粒子数量。
+ * ★ devicePixelRatio 上限取 2：3x 屏上若不封顶，像素量会涨到 2.25 倍，低端机直接掉帧。
+ * ★ 用 ctx.setTransform 做缩放，所以这里直接改 width/height 是安全的。
+ */
+function resizeParticles() {
+  const canvas = PARTICLE.canvas;
+  if (!canvas) return;
+
+  const w = Math.max(1, window.innerWidth || 1);
+  const h = Math.max(1, window.innerHeight || 1);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const pw = Math.round(w * dpr);
+  const ph = Math.round(h * dpr);
+
+  PARTICLE.w = w;
+  PARTICLE.h = h;
+  PARTICLE.dpr = dpr;
+
+  if (canvas.width !== pw || canvas.height !== ph) {
+    canvas.width = pw;                              // 赋值会清空画布，下一帧会重画
+    canvas.height = ph;
+  }
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+
+  syncParticleCount();
+}
+
+/**
+ * 推进一帧物理。三个力 + 一个阻尼：
+ *   ① 基础漂移：缓慢向上漂浮（到顶后从底部循环）+ 轻微横向正弦摆动（深空/上升感）；
+ *   ② 鼠标「垂直排斥」：鼠标周围 mouseRadius 内的粒子沿 **Y 轴**被推开
+ *      （水平方向的力刻意只给 1/6 左右 —— 需求强调的是「垂直方向上下浮动」）；
+ *   ③ 弹簧回复：粒子始终被缓慢拉回自己的基准位置，保证「推开后会自然归位」；
+ *   ④ 阻尼：速度每帧 ×0.94，让运动收敛 —— 既不会越弹越飞，也不会抖成噪声。
+ * @param {number} dt - 时间步长（1 ≈ 60fps 的一帧）
+ */
+function stepParticles(dt) {
+  const cfg = PARTICLE.cfg;
+  const items = PARTICLE.items;
+  const mouse = PARTICLE.mouse;
+  const t = PARTICLE.last;
+
+  const radius = cfg.mouseRadius > 0 ? cfg.mouseRadius : 140;
+  const radius2 = radius * radius;
+  const strength = cfg.mouseStrength * mouse.energy;   // energy 让鼠标离开后效果平滑衰减
+
+  for (let i = 0; i < items.length; i++) {
+    const p = items[i];
+
+    // ① 基础漂移：向上漂浮 + 横向摆动
+    p.baseY -= p.drift * cfg.speed * dt;
+    if (p.baseY < -12) {
+      // 飘出顶部后从底部重新进场。
+      // ★ 位置与速度必须一起重置：只改 baseY 会让粒子被弹簧从屏幕顶部一路
+      //   「拽」到底部，变成一道横穿整屏的流星（实测速度可达 15px/帧）。
+      p.baseX = Math.random() * PARTICLE.w;
+      p.baseY = PARTICLE.h + 12;
+      p.x = p.baseX;
+      p.y = p.baseY;
+      p.vx = 0;
+      p.vy = 0;
+    }
+    const sway = Math.sin(t * p.swaySpeed + p.phase) * p.swayAmp;
+
+    // ② 鼠标垂直排斥
+    if (strength > 0.001) {
+      const dx = p.x - mouse.x;
+      const dy = p.y - mouse.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < radius2 && d2 > 0.0001) {
+        const d = Math.sqrt(d2);
+        const falloff = 1 - d / radius;              // 越靠近鼠标，力越大（0 ~ 1）
+        const push = falloff * falloff * 0.28 * strength;
+        // ★ 垂直方向：主作用力 —— 粒子在鼠标下方就继续往下让、在上方就往上让
+        p.vy += (dy >= 0 ? push : -push) * dt;
+        // 水平方向：只给很弱的力，保证「上下浮动」是主视觉
+        p.vx += (dx / d) * push * 0.16 * dt;
+      }
+    }
+
+    // ③ 弹簧回复（目标 = 基准位置 + 横向摆动量）
+    p.vx += (p.baseX + sway - p.x) * 0.008 * dt;
+    p.vy += (p.baseY - p.y) * 0.008 * dt;
+
+    // ④ 阻尼（收敛）
+    p.vx *= 0.94;
+    p.vy *= 0.94;
+
+    // ⑤ 积分
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+  }
+}
+
+/**
+ * 整场垂直视差：鼠标在视口里的 Y 位置偏离中心时，给整片粒子一个很小的整体垂直
+ * 偏移（默认 ±14px），让「鼠标上下移动 → 整片粒子随之起伏」。
+ * 幅度克制，并且用插值平滑逼近，不会突跳。
+ * @param {number} dt - 时间步长
+ */
+function updateParallax(dt) {
+  const mouse = PARTICLE.mouse;
+  const half = PARTICLE.h / 2 || 1;
+  let target = 0;
+  if (mouse.energy > 0.001) {
+    target = ((half - mouse.y) / half) * 14 * PARTICLE.cfg.parallax * mouse.energy;
+  }
+  if (target > 20) target = 20;
+  if (target < -20) target = -20;
+  PARTICLE.parallaxY += (target - PARTICLE.parallaxY) * Math.min(1, 0.06 * dt);
+
+  // 鼠标能量平滑衰减：鼠标离开窗口 / 手指抬起后，效果自然收回去，不会突然中断
+  PARTICLE.mouse.energy += ((mouse.active ? 1 : 0) - mouse.energy) * Math.min(1, 0.05 * dt);
+}
+
+/**
+ * 绘制一帧（纯绘制，不改物理状态）。
+ * 做法：先用单位变换清空整块画布，再设成「dpr 缩放 + 整场垂直视差偏移」，
+ *       最后逐个 drawImage 光点贴图。
+ */
+function drawParticles() {
+  const ctx = PARTICLE.ctx;
+  const canvas = PARTICLE.canvas;
+  if (!ctx || !canvas) return;
+
+  const items = PARTICLE.items;
+  if (!items.length) return;
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const opMul = PARTICLE.cfg.opacity;
+  if (!(opMul > 0)) return;                         // 透明度倍率为 0 → 不必画
+
+  const dpr = PARTICLE.dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, PARTICLE.parallaxY * dpr);
+
+  const GLOW_SCALE = 3;                             // 贴图半径 = 粒子半径 × 3（含光晕）
+  for (let i = 0; i < items.length; i++) {
+    const p = items[i];
+    const sprite = p.sprite === 0 ? PARTICLE.spriteA : PARTICLE.spriteB;
+    if (!sprite) continue;
+    const size = p.r * GLOW_SCALE * 2;
+    let a = p.alpha * opMul;
+    if (a > 1) a = 1;
+    if (a < 0) a = 0;
+    ctx.globalAlpha = a;
+    ctx.drawImage(sprite, p.x - size / 2, p.y - size / 2, size, size);
+  }
+  ctx.globalAlpha = 1;
+}
+
+/**
+ * 单帧驱动（全站唯一的 requestAnimationFrame 循环）。
+ * @param {number} now - 高精度时间戳
+ */
+function particleFrame(now) {
+  if (!PARTICLE.running) return;
+
+  let dt = PARTICLE.last ? (now - PARTICLE.last) / 16.667 : 1;
+  PARTICLE.last = now;
+  if (!(dt > 0)) dt = 1;
+  if (dt > 3) dt = 3;                               // 掉帧 / 从后台切回时不要「瞬移」
+
+  updateParallax(dt);
+
+  // 装饰层万一出错：安静停下即可，绝不让 Console 反复刷红色报错
+  try {
+    stepParticles(dt);
+    drawParticles();
+  } catch (err) {
+    stopParticles();
+    return;
+  }
+
+  PARTICLE.raf = window.requestAnimationFrame(particleFrame);
+}
+
+/** 启动动画循环（同一时刻只会存在一个） */
+function startParticles() {
+  if (!PARTICLE.canvas || PARTICLE.running || PARTICLE.reduced) return;
+  PARTICLE.running = true;
+  PARTICLE.last = 0;
+  PARTICLE.raf = window.requestAnimationFrame(particleFrame);
+}
+
+/** 停止动画循环并释放 rAF 句柄 */
+function stopParticles() {
+  PARTICLE.running = false;
+  if (PARTICLE.raf) {
+    window.cancelAnimationFrame(PARTICLE.raf);
+    PARTICLE.raf = 0;
+  }
+}
+
+/**
+ * 绑定粒子层的事件：鼠标 / 触屏 / 窗口尺寸 / 页面可见性 / 系统动效偏好。
+ * ★ 全部监听器都是 { passive: true }；回调里**只记录坐标**，
+ *   不做任何 DOM 读写、不做 canvas 重绘 —— 这是性能红线。
+ */
+function bindParticleEvents() {
+  // 1) 鼠标移动：只记坐标
+  window.addEventListener('mousemove', function (event) {
+    PARTICLE.mouse.x = event.clientX;
+    PARTICLE.mouse.y = event.clientY;
+    PARTICLE.mouse.active = true;
+  }, { passive: true });
+
+  // 2) 鼠标离开文档：active 置 false，energy 会自己平滑衰减，粒子自然归位。
+  //    ★ 这两个必须挂在 document 上而不是 window 上 —— mouseleave 不冒泡，
+  //      它的派发目标就是「指针离开的那个文档」，挂 window 收不到。
+  //    ★ 同时挂 mouseleave 与 mouseout 两种写法：各家浏览器（尤其微信内核）
+  //      对「鼠标离开窗口」的派发不一致，两个都挂最保险；回调里都只写一个布尔值。
+  document.addEventListener('mouseleave', function () {
+    PARTICLE.mouse.active = false;
+  }, { passive: true });
+  document.addEventListener('mouseout', function (event) {
+    // relatedTarget 为空 = 指针离开了整个文档（而不是在元素之间移动）
+    if (!event.relatedTarget && !event.toElement) PARTICLE.mouse.active = false;
+  }, { passive: true });
+  // 2b) 窗口失焦（切标签页 / Alt+Tab）同样视为「鼠标不在了」
+  window.addEventListener('blur', function () {
+    PARTICLE.mouse.active = false;
+  }, { passive: true });
+
+  // 3) 触屏：手指滑动时同样产生互动；passive 保证**绝不阻塞页面滚动**
+  window.addEventListener('touchmove', function (event) {
+    const touch = event.touches && event.touches[0];
+    if (!touch) return;
+    PARTICLE.mouse.x = touch.clientX;
+    PARTICLE.mouse.y = touch.clientY;
+    PARTICLE.mouse.active = true;
+  }, { passive: true });
+  window.addEventListener('touchend', function () {
+    PARTICLE.mouse.active = false;
+  }, { passive: true });
+  window.addEventListener('touchcancel', function () {
+    PARTICLE.mouse.active = false;
+  }, { passive: true });
+
+  // 4) 窗口尺寸变化：防抖 150ms 后再重算画布与粒子数量
+  let resizeTimer = 0;
+  window.addEventListener('resize', function () {
+    if (resizeTimer) window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(function () {
+      resizeTimer = 0;
+      resizeParticles();
+      if (PARTICLE.reduced) drawParticles();        // 静态帧：手动重画一次
+    }, 150);
+  }, { passive: true });
+
+  // 5) 页面切到后台就暂停（省电，微信里尤其重要），回到前台再恢复
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stopParticles();
+    else startParticles();
+  });
+
+  // 6) 用户中途修改「减少动态效果」：立刻跟随（老浏览器不支持时静默跳过）
+  if (window.matchMedia) {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onChange = function () {
+      PARTICLE.reduced = mq.matches;
+      if (PARTICLE.reduced) {
+        stopParticles();
+        drawParticles();                            // 保留一帧静态画面，不留空白
+      } else {
+        startParticles();
+      }
+    };
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else if (mq.addListener) mq.addListener(onChange);
+  }
+}
+
+/**
+ * 初始化粒子背景层。
+ * 每一步都有降级出口：任何一步失败都只是「没有粒子」，页面其余部分完全不受影响。
+ * ★ 配置读取是「宽容」的：FX / FX.particles 整块缺失时按默认参数正常工作，
+ *   绝不抛错、更不会牵连 init() 里排在前面的打印按钮等既有功能。
+ */
+function initParticles() {
+  PARTICLE.cfg = particleConfig();                  // 重新归一化一次（缺配置 → 全套默认值）
+  if (!PARTICLE.cfg.enabled) return;                // 配置里明确关掉 → 什么都不做
+
+  const canvas = byId('particleCanvas');
+  if (!canvas) return;                              // HTML 里没有画布 → 跳过
+
+  let ctx = null;
+  try {
+    ctx = canvas.getContext('2d');
+  } catch (err) {
+    ctx = null;
+  }
+  if (!ctx) return;                                 // 不支持 Canvas 2D → 静默跳过
+
+  PARTICLE.canvas = canvas;
+  PARTICLE.ctx = ctx;
+  PARTICLE.reduced = respectsReducedMotion();
+  PARTICLE.started = true;
+
+  // 读主题色 + 预渲染光点贴图（之后每帧都不再碰 getComputedStyle）
+  refreshParticleTheme();
+  if (!PARTICLE.spriteA) return;                    // 主题色读不到 → 不画（不留硬编码兜底色）
+
+  resizeParticles();
+  bindParticleEvents();
+
+  if (PARTICLE.reduced) drawParticles();            // 减少动态效果：只画一帧静态画面，不跑循环
+  else startParticles();                            // 否则启动唯一的那一个 rAF 循环
+}
+
+
+/* ============================================================================
+ *  PART 7 · 总入口（safeInit 安全执行器 + init()）
  * ============================================================================ */
 
 /**
  * 页面总入口：先应用主题（避免首屏配色跳变），再渲染内容，最后绑定交互。
  * ⚠️ 一般不需要改这个函数。
  */
+/**
+ * 安全执行一个初始化步骤：单步失败只跳过该步，绝不牵连后续步骤。
+ * 这是本站「强制降级」铁律的实现方式 —— 任何新功能坏掉，页面其余部分照常可用。
+ *
+ * ★ 为什么必须有它：init() 里既有「新增特效」，也有「改动前就存在的打印按钮、
+ *   导航、内容渲染」。如果新增特效抛错时不做隔离，异常会一路冒泡、让排在后面的
+ *   既有功能一行都跑不到 —— 那就是「新增功能坏掉打死了老功能」，属于严重事故。
+ *   有了这道隔离，最坏情况也只是「那个特效没生效」。
+ * ★ 只 console.warn（黄色告警），不 console.error（红色报错）——
+ *   站点要求控制台里不出现红色 error。
+ *
+ * @param {string} label - 步骤名称（只用于控制台提示）
+ * @param {Function} fn - 要执行的初始化函数
+ */
+function safeInit(label, fn) {
+  try {
+    fn();
+  } catch (err) {
+    if (window.console && console.warn) {
+      console.warn('[init] ' + label + ' 初始化失败，已跳过（页面其余功能不受影响）：', err);
+    }
+  }
+}
+
+/**
+ * 页面总入口：先应用主题（避免首屏配色跳变），再渲染内容，最后绑定交互。
+ *
+ * ★ 每一步都套在 safeInit() 里：任何一步出错都只跳过那一步。
+ *   例如新增的粒子特效坏掉时，改动前就存在的打印按钮、导航、内容渲染必须照常工作。
+ * ★ 顺序与改动前完全一致，成功路径的行为零变化：
+ *     主题 → 板块骨架 → 内容渲染 → 交互增强 → 粒子
+ *   · initTheme() 必须最先（先定配色再上内容，避免闪一下白底）；
+ *   · buildSections() 必须在所有 render*() 之前（渲染函数要靠它生成的容器 id）；
+ *   · initParticles() 必须最后（它依赖主题已定 + DOM 已生成 + 入场动画已就位）。
+ * ⚠️ 一般不需要改这个函数。
+ */
 function init() {
   // 1) 主题优先 —— 先定配色，再上内容，避免闪一下白底
-  initTheme();
+  safeInit('主题初始化', initTheme);
 
   // 2) 按 SECTION_CONFIG 生成板块骨架（顺序 / 显隐 / 锚点 id 全部由配置决定）
   //    ⚠️ 必须排在所有 render* 之前：它们要靠这里生成的容器 id 找落点。
-  buildSections();
+  safeInit('板块骨架', buildSections);
 
   // 3) 内容渲染（全部数据来自 PROFILE，页面里没有任何硬编码的个人信息）
-  renderNav();
-  renderProfile(PROFILE.identity, PROFILE.contact, PROFILE.meters, PROFILE.resume);
-  renderEducation(PROFILE.education);
-  renderSkills(PROFILE.skills, PROFILE.languages);
-  renderProjects(PROFILE.projects);
-  renderAchievements(PROFILE.achievements, PROFILE.achievementsNote);
-  renderInterests(PROFILE.interests);
-  renderFooter(PROFILE);
+  //    ★ 逐个独立包裹：某一板块渲染失败，其余板块与页脚照常出内容。
+  safeInit('顶部导航', renderNav);
+  safeInit('Hero 与个人档案', function () {
+    renderProfile(PROFILE.identity, PROFILE.contact, PROFILE.meters, PROFILE.resume);
+  });
+  safeInit('教育背景', function () {
+    renderEducation(PROFILE.education);
+  });
+  safeInit('技能矩阵', function () {
+    renderSkills(PROFILE.skills, PROFILE.languages);
+  });
+  safeInit('项目作品', function () {
+    renderProjects(PROFILE.projects);
+  });
+  safeInit('荣誉资质', function () {
+    renderAchievements(PROFILE.achievements, PROFILE.achievementsNote);
+  });
+  safeInit('兴趣偏好', function () {
+    renderInterests(PROFILE.interests);
+  });
+  safeInit('页脚', function () {
+    renderFooter(PROFILE);
+  });
 
   // 4) 交互增强（可降级）
-  bindThemeSwitcher();
-  initScrollSpy();
-  initHoverNav();
-  initReveal();
-  bindPrintButton();
+  safeInit('主题切换器', bindThemeSwitcher);
+  safeInit('滚动高亮', initScrollSpy);
+  safeInit('悬停导航', initHoverNav);
+  safeInit('滚动入场动画', initReveal);
+  safeInit('打印按钮', bindPrintButton);
+
+  // 5) 背景粒子（纯装饰，可关 / 可降级）
+  //    ⚠️ 必须排在所有 render*() 之后（此时主题已定、DOM 已生成），
+  //       且必须排在 initReveal() 之后 —— 它会读当前主题色生成光点贴图。
+  safeInit('背景粒子', initParticles);
 }
 
 // DOM 解析完成后启动
